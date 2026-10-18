@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 09 · Controlling Traffic and Creating ACLs · Network+ Lab Companion</title>
+<meta name="description" content="Student lab companion for Lab 09 · Controlling Traffic and Creating ACLs — CompTIA Network+ (N10-009). Walkthrough, command reference, troubleshooting, exam relevance, and evidence checklist.">
+<style>
+:root{
+  --bg:#eef2f7; --paper:#ffffff; --panel:#e7edf4; --panel-2:#dde6f0;
+  --ink:#17222f; --ink-soft:#4a5a6d; --faint:#7389a0;
+  --line:#cdd8e4; --line-soft:#dde6f0;
+  --accent:#0a6bb0;        /* cable blue */
+  --accent-ink:#06507f;
+  --copper:#b2601f;        /* copper cabling */
+  --copper-soft:#f4e7db;
+  --signal:#0c9080;        /* link-light teal (verify/success) */
+  --signal-soft:#dff2ef;
+  --warn:#9a5b00; --warn-soft:#fbeccd;
+  --code-bg:#0f1b29; --code-ink:#e8f0f8; --code-faint:#8aa6c0;
+  --d1:#0a6bb0; --d1-soft:#dde9f5;
+  --d2:#0c9080; --d2-soft:#d6f0ec;
+  --d3:#b2601f; --d3-soft:#f6e7d8;
+  --d4:#b23452; --d4-soft:#f6dde3;
+  --d5:#6a4bb0; --d5-soft:#e6def6;
+  --shadow:0 1px 2px rgba(20,40,70,.06), 0 6px 20px rgba(20,40,70,.06);
+  --radius:10px; --maxw:62rem;
+  --fs:1rem;
+  --mono:"SFMono-Regular", Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#0b1420; --paper:#111e2d; --panel:#16273a; --panel-2:#1b2f45;
+  --ink:#e7eef6; --ink-soft:#a9bace; --faint:#7389a0;
+  --line:#26384d; --line-soft:#1d2d40;
+  --accent:#4aa6e6; --accent-ink:#8ec8f3;
+  --copper:#e08a3e; --copper-soft:#2d2114;
+  --signal:#39c3b0; --signal-soft:#122a28;
+  --warn:#e2a93f; --warn-soft:#2c2411;
+  --code-bg:#07101b; --code-ink:#e8f0f8; --code-faint:#7d9bb8;
+  --d1-soft:#132a40; --d2-soft:#0f2a27; --d3-soft:#2c2114; --d4-soft:#2c1620; --d5-soft:#1f1838;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:var(--fs);line-height:1.62;-webkit-text-size-adjust:100%}
+.skip-link{position:absolute;left:-999px;top:0;background:var(--accent);color:#fff;
+  padding:.6rem 1rem;border-radius:0 0 8px 0;z-index:50}
+.skip-link:focus{left:0}
+a{color:var(--accent-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{
+  outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* rack-rail header */
+.topbar{position:sticky;top:0;z-index:30;background:var(--paper);
+  border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.topbar-in{max-width:var(--maxw);margin:0 auto;padding:.55rem 1.1rem;
+  display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:.01em;margin-right:auto;display:flex;align-items:center;gap:.55rem}
+.brand .dot{width:.7rem;height:.7rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 3px var(--signal-soft)}
+.brand a{color:var(--ink);text-decoration:none}
+.tools{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.tool{min-height:40px;min-width:40px;padding:.35rem .6rem;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);border-radius:8px;font:inherit;font-size:.85rem;
+  cursor:pointer;display:inline-flex;align-items:center;gap:.35rem}
+.tool:hover{background:var(--panel-2)}
+.tool[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-ink)}
+
+main{max-width:var(--maxw);margin:0 auto;padding:1.4rem 1.1rem 4rem}
+
+/* hero */
+.hero{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  padding:1.3rem 1.3rem 1.1rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;
+  background:linear-gradient(90deg,var(--accent),var(--signal) 55%,var(--copper))}
+.port{display:inline-flex;align-items:baseline;gap:.5rem;font-family:var(--mono);
+  font-size:.8rem;color:var(--faint);border:1px solid var(--line);border-radius:6px;
+  padding:.15rem .5rem;background:var(--panel)}
+.port b{color:var(--accent-ink);font-size:1rem}
+.hero h1{margin:.6rem 0 .5rem;font-size:clamp(1.5rem,1.1rem + 1.8vw,2.1rem);line-height:1.12}
+.hero .lede{color:var(--ink-soft);margin:.2rem 0 .9rem;max-width:60ch}
+.badges{display:flex;gap:.4rem;flex-wrap:wrap}
+.badge{font-size:.76rem;font-weight:600;padding:.22rem .55rem;border-radius:999px;
+  border:1px solid transparent;white-space:nowrap}
+.d1{background:var(--d1-soft);color:var(--d1);border-color:var(--d1)}
+.d2{background:var(--d2-soft);color:var(--d2);border-color:var(--d2)}
+.d3{background:var(--d3-soft);color:var(--d3);border-color:var(--d3)}
+.d4{background:var(--d4-soft);color:var(--d4);border-color:var(--d4)}
+.d5{background:var(--d5-soft);color:var(--d5);border-color:var(--d5)}
+html[data-theme="dark"] .d1{color:var(--accent)}
+.obj{margin:.9rem 0 0;padding:.75rem .9rem;background:var(--panel);border-radius:8px;
+  border:1px solid var(--line-soft)}
+.obj h2{font-size:.82rem;text-transform:none;margin:0 0 .35rem;color:var(--faint);
+  font-weight:700;letter-spacing:.02em}
+.obj ul{margin:0;padding-left:1.1rem}
+.obj li{margin:.15rem 0;font-size:.92rem}
+.obj code{font-family:var(--mono);color:var(--accent-ink);font-size:.86em}
+
+/* progress bar */
+.progwrap{margin:1rem 0 .3rem;display:flex;align-items:center;gap:.7rem}
+.progwrap label{font-size:.82rem;color:var(--faint);white-space:nowrap}
+.progbar{flex:1;height:.55rem;background:var(--panel-2);border-radius:999px;overflow:hidden;
+  border:1px solid var(--line-soft)}
+.progbar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--signal),var(--accent));
+  transition:width .35s ease}
+@media (prefers-reduced-motion:reduce){.progbar > i{transition:none}}
+.progpct{font-variant-numeric:tabular-nums;font-size:.82rem;color:var(--ink-soft);min-width:3ch;text-align:right}
+
+/* TOC */
+.toc{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  padding:.8rem 1rem;margin:1.1rem 0;box-shadow:var(--shadow)}
+.toc h2{font-size:.82rem;color:var(--faint);margin:0 0 .4rem;font-weight:700}
+.toc ol{margin:0;padding-left:1.2rem;columns:2;column-gap:1.6rem}
+@media (max-width:620px){.toc ol{columns:1}}
+.toc li{margin:.12rem 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+/* sections */
+section{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  padding:1.1rem 1.2rem;margin:1rem 0;box-shadow:var(--shadow);scroll-margin-top:4rem}
+section > h2{margin:.1rem 0 .7rem;font-size:1.22rem;line-height:1.2;
+  display:flex;align-items:center;gap:.5rem}
+section > h2::before{content:"";width:.5rem;height:1.05rem;border-radius:2px;
+  background:var(--accent);flex:none}
+h3{font-size:1.02rem;margin:1.1rem 0 .3rem}
+p{margin:.55rem 0}
+section ul,section ol{margin:.5rem 0;padding-left:1.25rem}
+section li{margin:.22rem 0}
+strong{color:var(--ink)}
+em{color:var(--ink-soft)}
+
+/* step blocks */
+.step{border-left:3px solid var(--line);padding:.1rem 0 .1rem 1rem;margin:1rem 0}
+.step h3{display:flex;align-items:center;gap:.55rem;margin-top:0}
+.step .n{font-family:var(--mono);font-size:.78rem;background:var(--accent);color:#fff;
+  width:1.5rem;height:1.5rem;border-radius:6px;display:inline-flex;align-items:center;
+  justify-content:center;flex:none}
+.task-head{font-weight:700;color:var(--accent-ink);margin:1.4rem 0 .2rem;
+  padding-top:.5rem;border-top:1px dashed var(--line)}
+
+/* code + copy */
+.code{position:relative;background:var(--code-bg);border-radius:8px;margin:.5rem 0;
+  border:1px solid rgba(255,255,255,.06)}
+.code pre{margin:0;padding:.7rem 2.6rem .7rem .85rem;overflow-x:auto;color:var(--code-ink);
+  font-family:var(--mono);font-size:.86rem;line-height:1.55}
+.code .cmt{color:var(--code-faint)}
+.copy{position:absolute;top:.4rem;right:.4rem;min-height:32px;min-width:32px;
+  padding:.25rem .5rem;font-size:.72rem;border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);color:var(--code-ink);border-radius:6px;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.14)}
+.copy.ok{color:#7ff0c8;border-color:#2f6f57}
+code.inl{font-family:var(--mono);font-size:.85em;background:var(--panel-2);
+  padding:.07em .4em;border-radius:5px;color:var(--accent-ink)}
+html[data-theme="dark"] code.inl{color:var(--accent)}
+
+/* callouts */
+.call{border-radius:8px;padding:.7rem .9rem;margin:.8rem 0;border:1px solid var(--line);
+  background:var(--panel);font-size:.94rem}
+.call .k{display:block;font-weight:700;font-size:.78rem;letter-spacing:.02em;margin-bottom:.2rem}
+.call.tip{background:var(--signal-soft);border-color:var(--signal)}
+.call.tip .k{color:var(--signal)}
+.call.warn{background:var(--warn-soft);border-color:var(--warn)}
+.call.warn .k{color:var(--warn)}
+.call.env{background:var(--d1-soft);border-color:var(--accent)}
+.call.env .k{color:var(--accent-ink)}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;margin:.7rem 0;font-size:.92rem}
+.tbl th,.tbl td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);
+  vertical-align:top}
+.tbl th{background:var(--panel);font-size:.82rem;color:var(--faint);font-weight:700}
+.tbl tr:last-child td{border-bottom:none}
+.tbl code{font-family:var(--mono);font-size:.85em;color:var(--accent-ink)}
+.scroll{overflow-x:auto}
+
+/* reference grid */
+.ref dt{font-family:var(--mono);font-weight:700;color:var(--accent-ink);margin-top:.6rem}
+.ref dd{margin:.1rem 0 .3rem 0;color:var(--ink-soft);font-size:.94rem}
+
+/* check yourself */
+.q{border:1px solid var(--line);border-radius:8px;padding:.7rem .85rem;margin:.6rem 0;background:var(--panel)}
+.q .ask{font-weight:600;margin:0 0 .4rem}
+.reveal{min-height:38px;padding:.3rem .7rem;border:1px solid var(--accent);color:var(--accent-ink);
+  background:transparent;border-radius:7px;font:inherit;font-size:.85rem;cursor:pointer}
+.reveal:hover{background:var(--d1-soft)}
+.ans{margin:.55rem 0 0;padding:.55rem .7rem;background:var(--paper);border-radius:7px;
+  border:1px dashed var(--line);display:none}
+.ans.show{display:block}
+
+/* review + evidence checkboxes */
+.done-row,.ev-row{display:flex;align-items:flex-start;gap:.55rem;margin:.5rem 0;font-size:.93rem}
+.done-row input,.ev-row input{margin-top:.25rem;width:1.05rem;height:1.05rem;flex:none;accent-color:var(--signal)}
+.done-row{margin-top:.9rem;padding-top:.6rem;border-top:1px dashed var(--line);color:var(--faint)}
+.done-row label{font-size:.85rem}
+.evidence{background:var(--copper-soft);border-color:var(--copper)}
+.evidence > h2::before{background:var(--copper)}
+.shot{display:inline-flex;align-items:center;gap:.3rem;font-size:.74rem;font-weight:700;
+  color:var(--copper);background:var(--paper);border:1px solid var(--copper);
+  border-radius:999px;padding:.1rem .5rem;margin-left:.3rem;white-space:nowrap}
+html[data-theme="dark"] .shot{background:transparent}
+
+/* cheat sheet */
+.cheat{background:var(--panel)}
+.cheat table{width:100%;border-collapse:collapse;font-size:.88rem}
+.cheat td{padding:.4rem .5rem;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.cheat td:first-child{font-family:var(--mono);color:var(--accent-ink);white-space:nowrap;
+  padding-right:1rem}
+html[data-theme="dark"] .cheat td:first-child{color:var(--accent)}
+
+/* footer + backlink */
+.backlink{display:inline-flex;align-items:center;gap:.4rem;margin:.2rem 0 0;font-size:.9rem;
+  text-decoration:none}
+.pager{display:flex;justify-content:space-between;gap:1rem;margin-top:1.3rem;flex-wrap:wrap}
+.pager a{flex:1;min-width:14rem;text-decoration:none;border:1px solid var(--line);
+  border-radius:8px;padding:.7rem .9rem;background:var(--paper);color:var(--ink);
+  box-shadow:var(--shadow)}
+.pager a:hover{border-color:var(--accent)}
+.pager .lbl{display:block;font-size:.74rem;color:var(--faint)}
+.pager .nx{text-align:right}
+footer{max-width:var(--maxw);margin:2rem auto 0;padding:1.2rem 1.1rem;color:var(--faint);
+  font-size:.84rem;border-top:1px solid var(--line);text-align:center}
+footer .program{color:var(--ink-soft);font-weight:600}
+
+@media print{
+  .topbar,.tools,.progwrap,.copy,.reveal,.done-row,.ev-row input,.pager,.skip-link{display:none !important}
+  body{background:#fff;color:#000;font-size:11pt}
+  section,.hero,.toc{box-shadow:none;border:1px solid #bbb;break-inside:avoid}
+  .ans{display:block !important;border-style:solid}
+  .code pre{white-space:pre-wrap;color:#000}
+  .code{background:#f3f3f3;border:1px solid #ccc}
+  .code .cmt{color:#555}
+  a{color:#000;text-decoration:underline}
+}
+</style>
+</head>
+<body data-lab="09">
+<a class="skip-link" href="#main">Skip to main content</a>
+<div class="topbar"><div class="topbar-in">
+  <span class="brand"><span class="dot" aria-hidden="true"></span>
+    <a href="index.html">Network+ Lab Companion</a></span>
+  <div class="tools">
+    <button class="tool" id="fsDec" type="button" aria-label="Decrease text size">A−</button>
+    <button class="tool" id="fsInc" type="button" aria-label="Increase text size">A+</button>
+    <button class="tool" id="themeBtn" type="button" aria-pressed="false" aria-label="Toggle dark mode">
+      <span aria-hidden="true">◐</span> <span class="lab">Dark</span></button>
+    <button class="tool" type="button" id="printBtn" aria-label="Print this page">Print</button>
+  </div>
+</div></div>
+
+<main id="main">
+  <a class="backlink" href="index.html">← All 15 labs</a>
+  <div class="hero">
+    <span class="port">LAB <b>09</b></span>
+    <h1>Lab 09 · Controlling Traffic and Creating ACLs</h1>
+    <p class="lede">Build a router firewall and write static and dynamic Access Control Lists to permit and deny traffic by source, destination, and direction.</p>
+    <div class="badges"><span class="badge d2">Domain 2: Network Implementation</span></div>
+    <div class="obj">
+      <h2>Aligns to CompTIA Network+ (N10-009) objectives</h2>
+      <ul><li><code>2.2</code> Configure switching technologies and features.</li><li><code>1.2</code> Compare networking appliances, applications, and functions.</li><li><code>3.1</code> Explain the purpose of organizational processes and procedures.</li><li><code>5.5</code> Use the appropriate tool or protocol to solve networking issues.</li></ul>
+    </div>
+  </div>
+
+  <div class="progwrap">
+    <label for="progFill">Your progress</label>
+    <div class="progbar"><i id="progFill"></i></div>
+    <span class="progpct" id="progPct">0%</span>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <h2>On this page</h2>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+  </nav>
+
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>An <strong>Access Control List (ACL)</strong> is an ordered list of permit/deny rules applied to an interface in a direction — <strong>ingress</strong> (inbound) or <strong>egress</strong> (outbound). The router checks each packet against the rules <strong>top to bottom</strong> and acts on the first match. It's how you control <em>who can talk to whom</em> at Layer 3/4.</p><p>You first enable a basic <strong>firewall</strong> on the router (e.g. blocking ping to the device), then write <strong>static ACLs</strong> that allow PC1 but deny PC2 from reaching a server, and finally a <strong>dynamic ACL</strong> that opens access only after a condition is met.</p><div class="call tip"><span class="k">The two rules that trip everyone up</span>ACLs are evaluated <strong>first-match-wins, top to bottom</strong>, and most have an <strong>implicit deny</strong> at the end — anything not explicitly permitted is dropped. Order your rules carefully.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>GNS3</strong> with a router between <strong>LAN1</strong> (PC1, PC2) and <strong>LAN2</strong> (a server). You apply firewall rules and ACLs on the router's interfaces and test with <code class="inl">ping</code> from each PC.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Firewall on the router</p><div class="step"><h3><span class="n">1</span>Block a service to the device</h3><p>Enter config mode and, for example, disable ICMP (ping) to the router itself, then <code class="inl">commit</code> to enable the change. Test by pinging the router and confirming it's now blocked. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="configure
+# build the firewall rule, then:
+commit ; save">configure
+<span class="cmt"># build the firewall rule, then:</span>
+commit ; save</pre></div></div><p class="task-head">Static ACLs</p><div class="step"><h3><span class="n">1</span>Deny one host, permit another</h3><p>Write an ACL that <strong>allows PC1</strong> in LAN1 to reach the server but <strong>denies PC2</strong>, and apply it to the interface in the correct direction (<code class="inl">ingress</code>). The key is rule order and the deny being specific.</p><p>Test from PC1 — ping should <strong>succeed</strong>: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 172.16.31.3">ping 172.16.31.3</pre></div><p>Test from PC2 — ping should <strong>fail</strong> (no replies): <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 172.16.31.3">ping 172.16.31.3</pre></div></div><div class="step"><h3><span class="n">2</span>Verify the ACL and its application</h3><div class="code"><pre data-copy="show configuration acl">show configuration acl</pre></div></div><p class="task-head">Dynamic ACLs</p><div class="step"><h3><span class="n">1</span>Open access conditionally</h3><p>Configure a <strong>dynamic ACL</strong> that grants access only after a trigger/authentication condition, then verify the behavior changes once the condition is met. Dynamic ACLs are useful when access should be temporary or user-triggered rather than always-on. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>ACL reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Concept</th><th>Means</th></tr></thead><tbody><tr><td>Ingress (inbound)</td><td>Rules checked as traffic <em>enters</em> the interface</td></tr><tr><td>Egress (outbound)</td><td>Rules checked as traffic <em>leaves</em> the interface</td></tr><tr><td>Permit / Deny</td><td>The action taken on a matching packet</td></tr><tr><td>Implicit deny</td><td>The silent 'deny everything else' at the end of most ACLs</td></tr><tr><td>First-match</td><td>The router acts on the first rule that matches and stops evaluating</td></tr></tbody></table></div><dl class='ref'><dt>Static ACL</dt><dd>A fixed list of permit/deny rules that's always in effect.</dd><dt>Dynamic ACL</dt><dd>Rules that activate based on a condition (e.g., after authentication) — temporary access.</dd><dt>Stateful firewall</dt><dd>Tracks connection state so return traffic for an allowed session is permitted automatically; ACLs alone are often stateless.</dd><dt>Rule order matters</dt><dd>Put specific denies/permits before broader ones; a broad permit above a specific deny makes the deny unreachable.</dd><dt>Direction matters</dt><dd>The same rule applied ingress vs egress on the same interface filters opposite flows.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>ACL blocks everything</td><td>Implicit deny with no matching permit</td><td>Add an explicit permit for the traffic you <em>do</em> want before the implicit deny catches it.</td></tr><tr><td>Deny rule has no effect</td><td>A broader permit sits above it</td><td>Reorder — specific rules must come before general ones (first-match wins).</td></tr><tr><td>Wrong traffic filtered</td><td>Applied in the wrong direction</td><td>Re-check ingress vs egress; the same rule filters opposite flows depending on direction.</td></tr><tr><td>Rule typed but not enforced</td><td>Not committed, or not applied to an interface</td><td><code class="inl">commit</code>/<code class="inl">save</code> and confirm the ACL is attached to the interface with <code class="inl">show configuration acl</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>ACL evaluation is <strong>top-down, first-match</strong>, with an <strong>implicit deny</strong> at the end — classic exam traps.</li><li>Know <strong>inbound vs outbound (ingress/egress)</strong> direction and how it changes what's filtered.</li><li>Understand <strong>ACLs vs stateful firewalls</strong> and where each fits.</li><li>Recognize ACLs as a tool for <strong>segmentation and least-privilege</strong> access control.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Your ACL has a permit for the web server below a deny-any. Web traffic is blocked. Why?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>First-match wins</strong> — the deny-any matches first, so the permit below it is never reached. Move the permit above the deny.</div></div><div class="q"><p class="ask">2. What is the implicit deny?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">An unwritten <strong>deny all</strong> at the end of the ACL — any packet not explicitly permitted is dropped.</div></div><div class="q"><p class="ask">3. PC1 can reach the server but PC2 can't, as intended. Which direction was the ACL most likely applied?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Ingress</strong> on the LAN1-facing interface, so PC2's traffic is filtered as it enters the router.</div></div><div class="q"><p class="ask">4. When is a dynamic ACL preferable to a static one?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">When access should be <strong>conditional/temporary</strong> — granted only after a trigger such as authentication, rather than always open.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">Firewall working: a <strong>blocked ping</strong> to the router after the rule + <code class="inl">commit</code></label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2"><strong>PC1 ping succeeds</strong> to the server through the ACL</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><strong>PC2 ping fails</strong> to the server (denied by the ACL)</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show configuration acl</code> showing your rules and their interface/direction</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>Top-down, first-match</td><td>How ACLs are evaluated</td></tr><tr><td>Implicit deny</td><td>Unmatched traffic is dropped</td></tr><tr><td>ingress / egress</td><td>Inbound / outbound filtering direction</td></tr><tr><td>show configuration acl</td><td>Verify rules + application</td></tr><tr><td>Order: specific → general</td><td>Put narrow rules above broad ones</td></tr><tr><td>commit ; save</td><td>Apply + persist (VyOS)</td></tr></table></section>
+
+  <div class="pager"><a href="netplus_lab08.html"><span class="lbl">← Previous lab</span>Lab 08 · Ethernet Switching Technologies</a><a class="nx" href="netplus_lab10.html"><span class="lbl">Next lab →</span>Lab 10 · Network Availability</a></div>
+</main>
+
+<footer>
+  <p>Built for <span class="program">CompTIA Network+ (N10-009)</span> · Brookdale Community College · 2026</p>
+  <p>Companion to the NDG Network+ Lab Series. A study aid — always follow your official lab document for graded steps.</p>
+</footer>
+<script>
+(function(){
+  "use strict";
+  var KEY = "netplus-companion-v1";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
+  function save(s){try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+  var state = load();
+  var labId = document.body.getAttribute("data-lab") || "x";
+  state[labId] = state[labId] || {done:{}, size:null};
+
+  // ---- theme ----
+  var root = document.documentElement;
+  function applyTheme(t){
+    if(t==="dark"||t==="light"){root.setAttribute("data-theme",t);}
+    else{root.removeAttribute("data-theme");}
+    var b=document.getElementById("themeBtn");
+    if(b){var d=root.getAttribute("data-theme")==="dark";
+      b.setAttribute("aria-pressed",String(d));
+      b.querySelector(".lab").textContent = d? "Light" : "Dark";}
+  }
+  var savedTheme = null;
+  try{savedTheme = localStorage.getItem(KEY+"-theme");}catch(e){}
+  applyTheme(savedTheme || "light");
+  var tb=document.getElementById("themeBtn");
+  if(tb){tb.addEventListener("click",function(){
+    var d=root.getAttribute("data-theme")==="dark";
+    var nt=d?"light":"dark"; applyTheme(nt);
+    try{localStorage.setItem(KEY+"-theme",nt);}catch(e){}
+  });}
+
+  // ---- text size ----
+  var sizes=["0.9rem","1rem","1.12rem","1.25rem"];
+  function applySize(i){document.documentElement.style.setProperty("--fs",sizes[i]);}
+  var si = (state[labId].size==null)?1:state[labId].size;
+  applySize(si);
+  function bump(d){si=Math.max(0,Math.min(sizes.length-1,si+d));applySize(si);
+    state[labId].size=si;save(state);}
+  var dec=document.getElementById("fsDec"),inc=document.getElementById("fsInc");
+  if(dec)dec.addEventListener("click",function(){bump(-1);});
+  if(inc)inc.addEventListener("click",function(){bump(1);});
+
+  // ---- copy buttons ----
+  document.querySelectorAll(".code").forEach(function(box){
+    var btn=document.createElement("button");
+    btn.className="copy";btn.type="button";btn.textContent="Copy";
+    btn.setAttribute("aria-label","Copy command to clipboard");
+    btn.addEventListener("click",function(){
+      var pre=box.querySelector("pre");
+      var txt=pre?pre.getAttribute("data-copy")||pre.innerText:"";
+      function done(){btn.textContent="Copied";btn.classList.add("ok");
+        setTimeout(function(){btn.textContent="Copy";btn.classList.remove("ok");},1400);}
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){fallback(txt,done);});
+      }else{fallback(txt,done);}
+    });
+    box.appendChild(btn);
+  });
+  function fallback(txt,cb){try{var ta=document.createElement("textarea");
+    ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);
+    ta.select();document.execCommand("copy");document.body.removeChild(ta);cb();}catch(e){}}
+
+  // ---- reveal answers ----
+  document.querySelectorAll(".reveal").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var ans=btn.parentElement.querySelector(".ans");
+      if(!ans)return;
+      var open=ans.classList.toggle("show");
+      btn.setAttribute("aria-expanded",String(open));
+      btn.textContent=open?"Hide answer":"Show answer";
+    });
+  });
+
+  // ---- progress (review + evidence checkboxes) ----
+  var boxes=Array.prototype.slice.call(document.querySelectorAll("input[data-done]"));
+  var bar=document.getElementById("progFill"), pct=document.getElementById("progPct");
+  function refresh(){
+    if(!boxes.length)return;
+    var n=boxes.filter(function(b){return b.checked;}).length;
+    var p=Math.round(n/boxes.length*100);
+    if(bar)bar.style.width=p+"%";
+    if(pct)pct.textContent=p+"%";
+  }
+  boxes.forEach(function(b){
+    var id=b.getAttribute("data-done");
+    if(state[labId].done[id])b.checked=true;
+    b.addEventListener("change",function(){
+      state[labId].done[id]=b.checked;save(state);refresh();
+    });
+  });
+  refresh();
+})();
+</script>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  var pb=document.getElementById("printBtn");
+  if(pb)pb.addEventListener("click",function(){window.print();});
+});
+</script>
+</body>
+</html>

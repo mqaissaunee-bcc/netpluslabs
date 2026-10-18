@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 08 · Ethernet Switching Technologies · Network+ Lab Companion</title>
+<meta name="description" content="Student lab companion for Lab 08 · Ethernet Switching Technologies — CompTIA Network+ (N10-009). Walkthrough, command reference, troubleshooting, exam relevance, and evidence checklist.">
+<style>
+:root{
+  --bg:#eef2f7; --paper:#ffffff; --panel:#e7edf4; --panel-2:#dde6f0;
+  --ink:#17222f; --ink-soft:#4a5a6d; --faint:#7389a0;
+  --line:#cdd8e4; --line-soft:#dde6f0;
+  --accent:#0a6bb0;        /* cable blue */
+  --accent-ink:#06507f;
+  --copper:#b2601f;        /* copper cabling */
+  --copper-soft:#f4e7db;
+  --signal:#0c9080;        /* link-light teal (verify/success) */
+  --signal-soft:#dff2ef;
+  --warn:#9a5b00; --warn-soft:#fbeccd;
+  --code-bg:#0f1b29; --code-ink:#e8f0f8; --code-faint:#8aa6c0;
+  --d1:#0a6bb0; --d1-soft:#dde9f5;
+  --d2:#0c9080; --d2-soft:#d6f0ec;
+  --d3:#b2601f; --d3-soft:#f6e7d8;
+  --d4:#b23452; --d4-soft:#f6dde3;
+  --d5:#6a4bb0; --d5-soft:#e6def6;
+  --shadow:0 1px 2px rgba(20,40,70,.06), 0 6px 20px rgba(20,40,70,.06);
+  --radius:10px; --maxw:62rem;
+  --fs:1rem;
+  --mono:"SFMono-Regular", Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#0b1420; --paper:#111e2d; --panel:#16273a; --panel-2:#1b2f45;
+  --ink:#e7eef6; --ink-soft:#a9bace; --faint:#7389a0;
+  --line:#26384d; --line-soft:#1d2d40;
+  --accent:#4aa6e6; --accent-ink:#8ec8f3;
+  --copper:#e08a3e; --copper-soft:#2d2114;
+  --signal:#39c3b0; --signal-soft:#122a28;
+  --warn:#e2a93f; --warn-soft:#2c2411;
+  --code-bg:#07101b; --code-ink:#e8f0f8; --code-faint:#7d9bb8;
+  --d1-soft:#132a40; --d2-soft:#0f2a27; --d3-soft:#2c2114; --d4-soft:#2c1620; --d5-soft:#1f1838;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:var(--fs);line-height:1.62;-webkit-text-size-adjust:100%}
+.skip-link{position:absolute;left:-999px;top:0;background:var(--accent);color:#fff;
+  padding:.6rem 1rem;border-radius:0 0 8px 0;z-index:50}
+.skip-link:focus{left:0}
+a{color:var(--accent-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{
+  outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* rack-rail header */
+.topbar{position:sticky;top:0;z-index:30;background:var(--paper);
+  border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.topbar-in{max-width:var(--maxw);margin:0 auto;padding:.55rem 1.1rem;
+  display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:.01em;margin-right:auto;display:flex;align-items:center;gap:.55rem}
+.brand .dot{width:.7rem;height:.7rem;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 0 3px var(--signal-soft)}
+.brand a{color:var(--ink);text-decoration:none}
+.tools{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.tool{min-height:40px;min-width:40px;padding:.35rem .6rem;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);border-radius:8px;font:inherit;font-size:.85rem;
+  cursor:pointer;display:inline-flex;align-items:center;gap:.35rem}
+.tool:hover{background:var(--panel-2)}
+.tool[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-ink)}
+
+main{max-width:var(--maxw);margin:0 auto;padding:1.4rem 1.1rem 4rem}
+
+/* hero */
+.hero{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  padding:1.3rem 1.3rem 1.1rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;
+  background:linear-gradient(90deg,var(--accent),var(--signal) 55%,var(--copper))}
+.port{display:inline-flex;align-items:baseline;gap:.5rem;font-family:var(--mono);
+  font-size:.8rem;color:var(--faint);border:1px solid var(--line);border-radius:6px;
+  padding:.15rem .5rem;background:var(--panel)}
+.port b{color:var(--accent-ink);font-size:1rem}
+.hero h1{margin:.6rem 0 .5rem;font-size:clamp(1.5rem,1.1rem + 1.8vw,2.1rem);line-height:1.12}
+.hero .lede{color:var(--ink-soft);margin:.2rem 0 .9rem;max-width:60ch}
+.badges{display:flex;gap:.4rem;flex-wrap:wrap}
+.badge{font-size:.76rem;font-weight:600;padding:.22rem .55rem;border-radius:999px;
+  border:1px solid transparent;white-space:nowrap}
+.d1{background:var(--d1-soft);color:var(--d1);border-color:var(--d1)}
+.d2{background:var(--d2-soft);color:var(--d2);border-color:var(--d2)}
+.d3{background:var(--d3-soft);color:var(--d3);border-color:var(--d3)}
+.d4{background:var(--d4-soft);color:var(--d4);border-color:var(--d4)}
+.d5{background:var(--d5-soft);color:var(--d5);border-color:var(--d5)}
+html[data-theme="dark"] .d1{color:var(--accent)}
+.obj{margin:.9rem 0 0;padding:.75rem .9rem;background:var(--panel);border-radius:8px;
+  border:1px solid var(--line-soft)}
+.obj h2{font-size:.82rem;text-transform:none;margin:0 0 .35rem;color:var(--faint);
+  font-weight:700;letter-spacing:.02em}
+.obj ul{margin:0;padding-left:1.1rem}
+.obj li{margin:.15rem 0;font-size:.92rem}
+.obj code{font-family:var(--mono);color:var(--accent-ink);font-size:.86em}
+
+/* progress bar */
+.progwrap{margin:1rem 0 .3rem;display:flex;align-items:center;gap:.7rem}
+.progwrap label{font-size:.82rem;color:var(--faint);white-space:nowrap}
+.progbar{flex:1;height:.55rem;background:var(--panel-2);border-radius:999px;overflow:hidden;
+  border:1px solid var(--line-soft)}
+.progbar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--signal),var(--accent));
+  transition:width .35s ease}
+@media (prefers-reduced-motion:reduce){.progbar > i{transition:none}}
+.progpct{font-variant-numeric:tabular-nums;font-size:.82rem;color:var(--ink-soft);min-width:3ch;text-align:right}
+
+/* TOC */
+.toc{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  padding:.8rem 1rem;margin:1.1rem 0;box-shadow:var(--shadow)}
+.toc h2{font-size:.82rem;color:var(--faint);margin:0 0 .4rem;font-weight:700}
+.toc ol{margin:0;padding-left:1.2rem;columns:2;column-gap:1.6rem}
+@media (max-width:620px){.toc ol{columns:1}}
+.toc li{margin:.12rem 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+/* sections */
+section{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  padding:1.1rem 1.2rem;margin:1rem 0;box-shadow:var(--shadow);scroll-margin-top:4rem}
+section > h2{margin:.1rem 0 .7rem;font-size:1.22rem;line-height:1.2;
+  display:flex;align-items:center;gap:.5rem}
+section > h2::before{content:"";width:.5rem;height:1.05rem;border-radius:2px;
+  background:var(--accent);flex:none}
+h3{font-size:1.02rem;margin:1.1rem 0 .3rem}
+p{margin:.55rem 0}
+section ul,section ol{margin:.5rem 0;padding-left:1.25rem}
+section li{margin:.22rem 0}
+strong{color:var(--ink)}
+em{color:var(--ink-soft)}
+
+/* step blocks */
+.step{border-left:3px solid var(--line);padding:.1rem 0 .1rem 1rem;margin:1rem 0}
+.step h3{display:flex;align-items:center;gap:.55rem;margin-top:0}
+.step .n{font-family:var(--mono);font-size:.78rem;background:var(--accent);color:#fff;
+  width:1.5rem;height:1.5rem;border-radius:6px;display:inline-flex;align-items:center;
+  justify-content:center;flex:none}
+.task-head{font-weight:700;color:var(--accent-ink);margin:1.4rem 0 .2rem;
+  padding-top:.5rem;border-top:1px dashed var(--line)}
+
+/* code + copy */
+.code{position:relative;background:var(--code-bg);border-radius:8px;margin:.5rem 0;
+  border:1px solid rgba(255,255,255,.06)}
+.code pre{margin:0;padding:.7rem 2.6rem .7rem .85rem;overflow-x:auto;color:var(--code-ink);
+  font-family:var(--mono);font-size:.86rem;line-height:1.55}
+.code .cmt{color:var(--code-faint)}
+.copy{position:absolute;top:.4rem;right:.4rem;min-height:32px;min-width:32px;
+  padding:.25rem .5rem;font-size:.72rem;border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);color:var(--code-ink);border-radius:6px;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.14)}
+.copy.ok{color:#7ff0c8;border-color:#2f6f57}
+code.inl{font-family:var(--mono);font-size:.85em;background:var(--panel-2);
+  padding:.07em .4em;border-radius:5px;color:var(--accent-ink)}
+html[data-theme="dark"] code.inl{color:var(--accent)}
+
+/* callouts */
+.call{border-radius:8px;padding:.7rem .9rem;margin:.8rem 0;border:1px solid var(--line);
+  background:var(--panel);font-size:.94rem}
+.call .k{display:block;font-weight:700;font-size:.78rem;letter-spacing:.02em;margin-bottom:.2rem}
+.call.tip{background:var(--signal-soft);border-color:var(--signal)}
+.call.tip .k{color:var(--signal)}
+.call.warn{background:var(--warn-soft);border-color:var(--warn)}
+.call.warn .k{color:var(--warn)}
+.call.env{background:var(--d1-soft);border-color:var(--accent)}
+.call.env .k{color:var(--accent-ink)}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;margin:.7rem 0;font-size:.92rem}
+.tbl th,.tbl td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);
+  vertical-align:top}
+.tbl th{background:var(--panel);font-size:.82rem;color:var(--faint);font-weight:700}
+.tbl tr:last-child td{border-bottom:none}
+.tbl code{font-family:var(--mono);font-size:.85em;color:var(--accent-ink)}
+.scroll{overflow-x:auto}
+
+/* reference grid */
+.ref dt{font-family:var(--mono);font-weight:700;color:var(--accent-ink);margin-top:.6rem}
+.ref dd{margin:.1rem 0 .3rem 0;color:var(--ink-soft);font-size:.94rem}
+
+/* check yourself */
+.q{border:1px solid var(--line);border-radius:8px;padding:.7rem .85rem;margin:.6rem 0;background:var(--panel)}
+.q .ask{font-weight:600;margin:0 0 .4rem}
+.reveal{min-height:38px;padding:.3rem .7rem;border:1px solid var(--accent);color:var(--accent-ink);
+  background:transparent;border-radius:7px;font:inherit;font-size:.85rem;cursor:pointer}
+.reveal:hover{background:var(--d1-soft)}
+.ans{margin:.55rem 0 0;padding:.55rem .7rem;background:var(--paper);border-radius:7px;
+  border:1px dashed var(--line);display:none}
+.ans.show{display:block}
+
+/* review + evidence checkboxes */
+.done-row,.ev-row{display:flex;align-items:flex-start;gap:.55rem;margin:.5rem 0;font-size:.93rem}
+.done-row input,.ev-row input{margin-top:.25rem;width:1.05rem;height:1.05rem;flex:none;accent-color:var(--signal)}
+.done-row{margin-top:.9rem;padding-top:.6rem;border-top:1px dashed var(--line);color:var(--faint)}
+.done-row label{font-size:.85rem}
+.evidence{background:var(--copper-soft);border-color:var(--copper)}
+.evidence > h2::before{background:var(--copper)}
+.shot{display:inline-flex;align-items:center;gap:.3rem;font-size:.74rem;font-weight:700;
+  color:var(--copper);background:var(--paper);border:1px solid var(--copper);
+  border-radius:999px;padding:.1rem .5rem;margin-left:.3rem;white-space:nowrap}
+html[data-theme="dark"] .shot{background:transparent}
+
+/* cheat sheet */
+.cheat{background:var(--panel)}
+.cheat table{width:100%;border-collapse:collapse;font-size:.88rem}
+.cheat td{padding:.4rem .5rem;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.cheat td:first-child{font-family:var(--mono);color:var(--accent-ink);white-space:nowrap;
+  padding-right:1rem}
+html[data-theme="dark"] .cheat td:first-child{color:var(--accent)}
+
+/* footer + backlink */
+.backlink{display:inline-flex;align-items:center;gap:.4rem;margin:.2rem 0 0;font-size:.9rem;
+  text-decoration:none}
+.pager{display:flex;justify-content:space-between;gap:1rem;margin-top:1.3rem;flex-wrap:wrap}
+.pager a{flex:1;min-width:14rem;text-decoration:none;border:1px solid var(--line);
+  border-radius:8px;padding:.7rem .9rem;background:var(--paper);color:var(--ink);
+  box-shadow:var(--shadow)}
+.pager a:hover{border-color:var(--accent)}
+.pager .lbl{display:block;font-size:.74rem;color:var(--faint)}
+.pager .nx{text-align:right}
+footer{max-width:var(--maxw);margin:2rem auto 0;padding:1.2rem 1.1rem;color:var(--faint);
+  font-size:.84rem;border-top:1px solid var(--line);text-align:center}
+footer .program{color:var(--ink-soft);font-weight:600}
+
+@media print{
+  .topbar,.tools,.progwrap,.copy,.reveal,.done-row,.ev-row input,.pager,.skip-link{display:none !important}
+  body{background:#fff;color:#000;font-size:11pt}
+  section,.hero,.toc{box-shadow:none;border:1px solid #bbb;break-inside:avoid}
+  .ans{display:block !important;border-style:solid}
+  .code pre{white-space:pre-wrap;color:#000}
+  .code{background:#f3f3f3;border:1px solid #ccc}
+  .code .cmt{color:#555}
+  a{color:#000;text-decoration:underline}
+}
+</style>
+</head>
+<body data-lab="08">
+<a class="skip-link" href="#main">Skip to main content</a>
+<div class="topbar"><div class="topbar-in">
+  <span class="brand"><span class="dot" aria-hidden="true"></span>
+    <a href="index.html">Network+ Lab Companion</a></span>
+  <div class="tools">
+    <button class="tool" id="fsDec" type="button" aria-label="Decrease text size">A−</button>
+    <button class="tool" id="fsInc" type="button" aria-label="Increase text size">A+</button>
+    <button class="tool" id="themeBtn" type="button" aria-pressed="false" aria-label="Toggle dark mode">
+      <span aria-hidden="true">◐</span> <span class="lab">Dark</span></button>
+    <button class="tool" type="button" id="printBtn" aria-label="Print this page">Print</button>
+  </div>
+</div></div>
+
+<main id="main">
+  <a class="backlink" href="index.html">← All 15 labs</a>
+  <div class="hero">
+    <span class="port">LAB <b>08</b></span>
+    <h1>Lab 08 · Ethernet Switching Technologies</h1>
+    <p class="lede">Configure a managed switch: hostname/banner/passwords, port security, SSH/Telnet remote management, VLANs and trunking, and link aggregation (LACP).</p>
+    <div class="badges"><span class="badge d2">Domain 2: Network Implementation</span></div>
+    <div class="obj">
+      <h2>Aligns to CompTIA Network+ (N10-009) objectives</h2>
+      <ul><li><code>2.2</code> Configure switching technologies and features.</li><li><code>1.2</code> Compare networking appliances, applications, and functions.</li><li><code>3.1</code> Explain the purpose of organizational processes and procedures.</li><li><code>5.5</code> Use the appropriate tool or protocol to solve networking issues.</li></ul>
+    </div>
+  </div>
+
+  <div class="progwrap">
+    <label for="progFill">Your progress</label>
+    <div class="progbar"><i id="progFill"></i></div>
+    <span class="progpct" id="progPct">0%</span>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <h2>On this page</h2>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+  </nav>
+
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>A switch forwards frames at Layer 2 using a <strong>MAC address table</strong>. A <em>managed</em> switch adds the features that make real networks work: identity and access control, <strong>VLANs</strong> to segment one physical switch into many logical networks, <strong>trunks</strong> to carry multiple VLANs between switches, <strong>port security</strong> to lock a port to known MACs, and <strong>link aggregation</strong> to bond ports for more bandwidth and redundancy.</p><p>You configure all of these on two switches (<strong>SW1, SW2</strong>), verify each with <code class="inl">show</code> commands, and test remote access over Telnet and SSH.</p><div class="call tip"><span class="k">VLAN + trunk, the core idea</span>A <strong>VLAN</strong> is a broadcast domain you define in software — ports in VLAN 10 can't talk directly to VLAN 20 without a router. A <strong>trunk</strong> is a single link that carries <em>many</em> VLANs between switches, tagging each frame so the other side knows which VLAN it belongs to.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>GNS3</strong> with two managed switches (<strong>SW1, SW2</strong>) and host PCs. The switch CLI uses <strong><code class="inl">configure …</code></strong> statements and <strong><code class="inl">show ports / show vlan / show sharing</code></strong> verification commands (an Extreme/Enterasys-style CLI — not Cisco IOS).</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><div class="call warn"><span class="k">Switch CLI family</span>This managed switch uses commands like <code class="inl">configure vlan 10 name Students</code> and <code class="inl">show ports</code> / <code class="inl">show vlan</code> / <code class="inl">show sharing</code>. The <em>concepts</em> are identical to any managed switch; only the exact syntax differs from Cisco IOS.</div><p class="task-head">Basic switch configuration</p><div class="step"><h3><span class="n">1</span>Set hostname, banner, and password</h3><p>Give each switch a unique name, a login banner, and an access password so it's identifiable and protected. Verify the running state: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show switch">show switch</pre></div></div><p class="task-head">Port security (MAC locking)</p><div class="step"><h3><span class="n">1</span>Lock ports to learned MACs</h3><p>Configure <strong>MAC-locking</strong> on ports 1–4 so only known devices can use them — an unknown MAC is blocked. Verify: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show mac-locking ports">show mac-locking ports</pre></div></div><p class="task-head">Remote management (Telnet / SSH)</p><div class="step"><h3><span class="n">1</span>Give the switch a management IP and enable remote access</h3><p>Assign an IP to the management/VLAN interface, then enable Telnet and SSH. Connect from a PC to prove it works — and notice <strong>Telnet is cleartext while SSH is encrypted.</strong> <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">VLANs and trunking</p><div class="step"><h3><span class="n">1</span>Create VLANs and tag the trunk</h3><div class="code"><pre data-copy="configure vlan 10 name Students
+configure vlan 20 name Faculty
+configure vlan 99 name Admin">configure vlan 10 name Students
+configure vlan 20 name Faculty
+configure vlan 99 name Admin</pre></div><p>Assign access ports to their VLANs, then configure the inter-switch link (port 9) as a <strong>trunk</strong> that carries all three VLANs between SW1 and SW2. Verify: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show vlan">show vlan</pre></div></div><p class="task-head">Link aggregation (LACP)</p><div class="step"><h3><span class="n">1</span>Bond multiple ports into one logical link</h3><p>Group ports 9–12 into a <strong>Link Aggregation Group</strong> using <strong>LACP</strong> for more bandwidth and redundancy — if one physical link fails, the bundle keeps running. Verify: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show sharing">show sharing</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>Switching reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Feature</th><th>What it does</th><th>Verify with</th></tr></thead><tbody><tr><td>VLAN</td><td>Logical segmentation into separate broadcast domains</td><td><code class="inl">show vlan</code></td></tr><tr><td>Trunk (802.1Q)</td><td>Carries multiple tagged VLANs on one link</td><td><code class="inl">show vlan</code> / port config</td></tr><tr><td>Access port</td><td>Belongs to a single VLAN; connects an end device</td><td><code class="inl">show ports</code></td></tr><tr><td>Port security / MAC-locking</td><td>Restricts a port to specific MAC addresses</td><td><code class="inl">show mac-locking ports</code></td></tr><tr><td>Link aggregation (LACP)</td><td>Bonds ports into one high-bandwidth, redundant link</td><td><code class="inl">show sharing</code></td></tr><tr><td>SSH vs Telnet</td><td>Encrypted vs cleartext remote CLI</td><td>connection test</td></tr></tbody></table></div><dl class='ref'><dt>MAC address table</dt><dd>The switch's map of which MAC is reachable out which port; how it forwards frames.</dd><dt>802.1Q tag</dt><dd>The 4-byte VLAN tag added to frames on a trunk so the far switch knows the VLAN.</dd><dt>Native VLAN</dt><dd>The one VLAN whose frames cross a trunk untagged — a known security gotcha.</dd><dt>LACP</dt><dd>Link Aggregation Control Protocol (802.3ad) — negotiates a bundle of links dynamically.</dd><dt>STP</dt><dd>Spanning Tree Protocol — prevents Layer-2 loops; essential once switches interconnect redundantly.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Devices in the same VLAN can't reach each other across switches</td><td>Inter-switch link isn't a trunk, or VLAN not allowed on it</td><td>Configure the link as a trunk and allow the VLAN across it; verify with <code class="inl">show vlan</code>.</td></tr><tr><td>Different VLANs expected to talk directly</td><td>No router/L3 between them</td><td>VLANs are isolated by design — inter-VLAN routing needs a router or L3 switch.</td></tr><tr><td>Port security blocks a legitimate device</td><td>MAC changed (new NIC) or wasn't learned</td><td>Clear/relearn the allowed MAC on that locked port.</td></tr><tr><td>LACP bundle won't come up</td><td>Both ends not set to LACP, or mismatched members</td><td>Configure aggregation on <em>both</em> switches with matching member ports; verify <code class="inl">show sharing</code>.</td></tr><tr><td>Can't SSH in</td><td>Management IP/SSH not configured, or using Telnet port</td><td>Assign the mgmt IP, enable SSH, and connect on the SSH service — prefer SSH over Telnet.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li><strong>VLANs, 802.1Q trunking, native VLAN</strong> — heavily tested under objective 2.2.</li><li><strong>Port security / MAC filtering</strong> as an access-control measure.</li><li><strong>Link aggregation (LACP / 802.3ad)</strong> for bandwidth and redundancy.</li><li><strong>SSH over Telnet</strong> for secure management; know the security difference.</li><li>Know <strong>STP</strong> prevents switching loops (concept-level) once redundant links exist.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Two PCs in VLAN 10 on different switches can't ping. The access ports are correct. What's wrong?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The link between the switches isn't a <strong>trunk</strong> (or doesn't carry VLAN 10). A trunk with 802.1Q tagging is needed to extend the VLAN between switches.</div></div><div class="q"><p class="ask">2. Why bond four ports with LACP instead of using one?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>More aggregate bandwidth and redundancy</strong> — traffic is shared across the links, and the bundle survives a single link failure.</div></div><div class="q"><p class="ask">3. Why prefer SSH over Telnet for switch management?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Telnet sends everything — including credentials — in <strong>cleartext</strong>; SSH <strong>encrypts</strong> the session.</div></div><div class="q"><p class="ask">4. What stops frames from an unknown device on a MAC-locked port?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Port security (MAC-locking)</strong> — only the learned/allowed MACs are permitted; others are blocked.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show switch</code> with your configured <strong>hostname/banner</strong></label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2"><code class="inl">show mac-locking ports</code> showing <strong>port security</strong> on ports 1–4</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">A successful <strong>SSH</strong> session into the switch (and note Telnet works but is cleartext)</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show vlan</code> with VLANs 10/20/99 and the <strong>trunk</strong></label></div><div class="ev-row"><input type="checkbox" id="ev-5" data-done="ev-5"><label for="ev-5"><code class="inl">show sharing</code> confirming the <strong>LACP</strong> aggregation group</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>configure vlan N name NAME</td><td>Create &amp; name a VLAN</td></tr><tr><td>show vlan</td><td>VLANs and member ports</td></tr><tr><td>show ports</td><td>Port status overview</td></tr><tr><td>show mac-locking ports</td><td>Port-security state</td></tr><tr><td>show sharing</td><td>Link-aggregation groups</td></tr><tr><td>show switch</td><td>Hostname / system info</td></tr><tr><td>SSH ≫ Telnet</td><td>Always prefer encrypted management</td></tr></table></section>
+
+  <div class="pager"><a href="netplus_lab07.html"><span class="lbl">← Previous lab</span>Lab 07 · Routing Protocols</a><a class="nx" href="netplus_lab09.html"><span class="lbl">Next lab →</span>Lab 09 · Controlling Traffic and Creating ACLs</a></div>
+</main>
+
+<footer>
+  <p>Built for <span class="program">CompTIA Network+ (N10-009)</span> · Brookdale Community College · 2026</p>
+  <p>Companion to the NDG Network+ Lab Series. A study aid — always follow your official lab document for graded steps.</p>
+</footer>
+<script>
+(function(){
+  "use strict";
+  var KEY = "netplus-companion-v1";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
+  function save(s){try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+  var state = load();
+  var labId = document.body.getAttribute("data-lab") || "x";
+  state[labId] = state[labId] || {done:{}, size:null};
+
+  // ---- theme ----
+  var root = document.documentElement;
+  function applyTheme(t){
+    if(t==="dark"||t==="light"){root.setAttribute("data-theme",t);}
+    else{root.removeAttribute("data-theme");}
+    var b=document.getElementById("themeBtn");
+    if(b){var d=root.getAttribute("data-theme")==="dark";
+      b.setAttribute("aria-pressed",String(d));
+      b.querySelector(".lab").textContent = d? "Light" : "Dark";}
+  }
+  var savedTheme = null;
+  try{savedTheme = localStorage.getItem(KEY+"-theme");}catch(e){}
+  applyTheme(savedTheme || "light");
+  var tb=document.getElementById("themeBtn");
+  if(tb){tb.addEventListener("click",function(){
+    var d=root.getAttribute("data-theme")==="dark";
+    var nt=d?"light":"dark"; applyTheme(nt);
+    try{localStorage.setItem(KEY+"-theme",nt);}catch(e){}
+  });}
+
+  // ---- text size ----
+  var sizes=["0.9rem","1rem","1.12rem","1.25rem"];
+  function applySize(i){document.documentElement.style.setProperty("--fs",sizes[i]);}
+  var si = (state[labId].size==null)?1:state[labId].size;
+  applySize(si);
+  function bump(d){si=Math.max(0,Math.min(sizes.length-1,si+d));applySize(si);
+    state[labId].size=si;save(state);}
+  var dec=document.getElementById("fsDec"),inc=document.getElementById("fsInc");
+  if(dec)dec.addEventListener("click",function(){bump(-1);});
+  if(inc)inc.addEventListener("click",function(){bump(1);});
+
+  // ---- copy buttons ----
+  document.querySelectorAll(".code").forEach(function(box){
+    var btn=document.createElement("button");
+    btn.className="copy";btn.type="button";btn.textContent="Copy";
+    btn.setAttribute("aria-label","Copy command to clipboard");
+    btn.addEventListener("click",function(){
+      var pre=box.querySelector("pre");
+      var txt=pre?pre.getAttribute("data-copy")||pre.innerText:"";
+      function done(){btn.textContent="Copied";btn.classList.add("ok");
+        setTimeout(function(){btn.textContent="Copy";btn.classList.remove("ok");},1400);}
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){fallback(txt,done);});
+      }else{fallback(txt,done);}
+    });
+    box.appendChild(btn);
+  });
+  function fallback(txt,cb){try{var ta=document.createElement("textarea");
+    ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);
+    ta.select();document.execCommand("copy");document.body.removeChild(ta);cb();}catch(e){}}
+
+  // ---- reveal answers ----
+  document.querySelectorAll(".reveal").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var ans=btn.parentElement.querySelector(".ans");
+      if(!ans)return;
+      var open=ans.classList.toggle("show");
+      btn.setAttribute("aria-expanded",String(open));
+      btn.textContent=open?"Hide answer":"Show answer";
+    });
+  });
+
+  // ---- progress (review + evidence checkboxes) ----
+  var boxes=Array.prototype.slice.call(document.querySelectorAll("input[data-done]"));
+  var bar=document.getElementById("progFill"), pct=document.getElementById("progPct");
+  function refresh(){
+    if(!boxes.length)return;
+    var n=boxes.filter(function(b){return b.checked;}).length;
+    var p=Math.round(n/boxes.length*100);
+    if(bar)bar.style.width=p+"%";
+    if(pct)pct.textContent=p+"%";
+  }
+  boxes.forEach(function(b){
+    var id=b.getAttribute("data-done");
+    if(state[labId].done[id])b.checked=true;
+    b.addEventListener("change",function(){
+      state[labId].done[id]=b.checked;save(state);refresh();
+    });
+  });
+  refresh();
+})();
+</script>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  var pb=document.getElementById("printBtn");
+  if(pb)pb.addEventListener("click",function(){window.print();});
+});
+</script>
+</body>
+</html>
