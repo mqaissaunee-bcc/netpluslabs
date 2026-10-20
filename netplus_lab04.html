@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="04">
@@ -272,7 +277,7 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
   <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>Private addresses (RFC 1918) can't appear on the Internet. <strong>NAT</strong> rewrites the addresses in packet headers at the edge router so private hosts can communicate with the outside world and vice-versa. You configure three flavors on a <strong>VyOS</strong> edge router:</p><ul><li><strong>SNAT (Source NAT)</strong> — rewrites the <em>source</em> address of outbound traffic so many inside hosts share one public address. With port tracking this is <strong>PAT</strong> (what home routers do).</li><li><strong>DNAT (Destination NAT)</strong> — rewrites the <em>destination</em> of inbound traffic so an outside user reaching your public IP lands on a specific internal server (port forwarding).</li><li><strong>1-to-1 NAT</strong> — a fixed, bidirectional mapping between one public and one private address.</li></ul><div class="call tip"><span class="k">SNAT vs DNAT direction</span>SNAT fixes <em>who it's from</em> on the way out. DNAT fixes <em>who it's for</em> on the way in. Keep the direction straight and the rest follows.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p>Inside <strong>GNS3</strong> you have a <strong>VyOS Edge router</strong> with an inside interface (<code class="inl">eth0</code>, the gateway for PC1–PC3) and an outside interface (<code class="inl">eth1</code>, toward the Provider network). You configure addressing, then layer SNAT, DNAT, and 1-to-1 NAT on top.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><div class="call warn"><span class="k">VyOS, not Cisco IOS</span>These routers run <strong>VyOS</strong>. You enter <code class="inl">configure</code> to edit, build config with <code class="inl">set …</code>, apply with <code class="inl">commit</code>, and persist with <code class="inl">save</code>. <code class="inl">show</code> commands work from operational mode.</div><p class="task-head">Basic device + interface addressing</p><div class="step"><h3><span class="n">1</span>Enter config mode and address the interfaces</h3><div class="code"><pre data-copy="configure
@@ -311,7 +316,94 @@ commit ; save</pre></div><p>Verify all rules and the translation table: <span cl
 show nat destination rules
 show nat source translations">show nat source rules
 show nat destination rules
-show nat source translations</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>NAT reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Type</th><th>Direction</th><th>What it rewrites</th><th>Typical use</th></tr></thead><tbody><tr><td>SNAT / PAT</td><td>Outbound</td><td>Source IP (+ port for PAT)</td><td>Many private hosts share one public IP</td></tr><tr><td>DNAT</td><td>Inbound</td><td>Destination IP/port</td><td>Port-forward to an internal server</td></tr><tr><td>1-to-1 (static)</td><td>Both</td><td>Full IP mapping</td><td>Dedicated public IP for one host</td></tr></tbody></table></div><dl class='ref'><dt>PAT (overload)</dt><dd>Port Address Translation — SNAT that also tracks source ports so thousands of sessions share one address. This is what home routers do.</dd><dt>masquerade</dt><dd>VyOS keyword for 'use the outbound interface's address' — the usual SNAT choice.</dd><dt>Inside local / global</dt><dd>The private vs translated public view of the <em>inside</em> host's address.</dd><dt>Why NAT exists</dt><dd>Conserves scarce IPv4 public addresses and hides internal addressing from the outside.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Config typed but nothing works</td><td>Forgot to <code class="inl">commit</code></td><td>VyOS applies nothing until you <code class="inl">commit</code>; then <code class="inl">save</code> so it survives reboot.</td></tr><tr><td>Outbound still fails</td><td>Wrong outbound interface or source subnet in the SNAT rule</td><td>Match the rule's <code class="inl">outbound-interface</code> to the real outside NIC and the <code class="inl">source address</code> to the inside subnet.</td></tr><tr><td>Port-forward doesn't reach the server</td><td>DNAT port/protocol/translation address wrong</td><td>Confirm protocol, destination port, and that the translation address is the server's real private IP.</td></tr><tr><td>Changes lost after reboot</td><td><code class="inl">save</code> not run</td><td>Always <code class="inl">save</code> after <code class="inl">commit</code> on VyOS.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Distinguish <strong>SNAT, DNAT/port forwarding, 1-to-1 (static) NAT</strong>, and <strong>PAT/overload</strong> — core objective 2.1 content.</li><li>Know <strong>why NAT exists</strong>: IPv4 conservation and address hiding.</li><li>Recognize <strong>port forwarding</strong> as a DNAT use case (exposing an internal service).</li><li>Understand that <strong>PAT lets many hosts share one public IP</strong> by tracking ports.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Three hundred office PCs reach the Internet through one public IP. Which NAT?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>PAT</strong> (overloaded SNAT) — it tracks source ports so many private hosts multiplex one public address.</div></div><div class="q"><p class="ask">2. You want outside users to reach an internal web server. Which NAT, and in which direction?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>DNAT</strong> (destination NAT / port forwarding) on <strong>inbound</strong> traffic — it rewrites the destination to the server's private IP.</div></div><div class="q"><p class="ask">3. On VyOS you built a rule but nothing changed. Why?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">You didn't <code class="inl">commit</code>. VyOS stages changes and only applies them on commit; follow with <code class="inl">save</code> to persist.</div></div><div class="q"><p class="ask">4. What's the difference between 1-to-1 NAT and DNAT?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">1-to-1 is a <strong>fixed, bidirectional</strong> full-address mapping; DNAT typically rewrites destination for specific inbound ports (port forwarding).</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show interfaces</code> after addressing eth0/eth1</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">SNAT working: a PC reaching an outside host + <code class="inl">show nat source translations</code></label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">DNAT working: outside access landing on the internal server</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show nat destination rules</code> listing your DNAT / 1-to-1 rules</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>configure</td><td>Enter VyOS config mode</td></tr><tr><td>set nat source rule N …</td><td>Build an SNAT rule</td></tr><tr><td>set nat destination rule N …</td><td>Build a DNAT/1-to-1 rule</td></tr><tr><td>… translation address masquerade</td><td>Use outbound interface IP (SNAT)</td></tr><tr><td>commit</td><td>Apply staged changes</td></tr><tr><td>save</td><td>Persist config across reboot</td></tr><tr><td>show nat source translations</td><td>See active translations</td></tr></table></section>
+show nat source translations</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology and Addressing Table</p>
+<p class="task-head">Task 2 - Network Address Translation (NAT)</p>
+<p class="task-head">Task 3 - Basic Device Configurations</p>
+<p class="task-head">Task 3.1 - End User Device and Basic Router Configuration</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the log in screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the Windows search bar, type GNS3, and then click the GNS3 App.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> The GNS3 Emulator opens. In the Project window, click Cancel.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> In the GNS3 App window, click File, and then click Import portable project.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the Open portable project window, click Desktop, and then double-click the Lab Files folder.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Double-click Lab 04.</h3><div class="code"><pre>1
+1
+1
+1</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> The Project window opens with Lab 04 in the Name field. Click OK to open Lab 04.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> It will take about 1 minute for Lab 04 to load. You will see the Please wait screen displaying the progress.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> The Lab 04 GNS3 network topology is now visible and matches the NAT topology on page 7.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> The network consists of an Inside Network (highlighted in blue) and an Outside Network (highlighted in yellow). The inside network consists of 3 PCs (1), a layer 2 switch, S1 (2), and a router, Edge (3). The outside network consists of the same router (3), a layer 3 multi-layer switch, Provider (4), and a PC representing an outside host, InternetHost (5). All devices have host names and are labeled in the topology. Also notice that most devices have a red square box indicating that these devices are not powered on except switch S1.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> Next, we need to start the devices in the network. In the top menu bar, click the big green arrow to start all nodes. In the Confirm Start All window, click Yes.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> All connections between devices are now green, indicating all devices have started. Notice that in the Topology Summary, all nodes have also turned from red to green. The GNS3 network is now ready for configuration. In the next steps, we will configure IP addressing parameters on PC1, PC2, PC3, and the InternetHost. We will then configure IP addressing on the interfaces of the Edge router, and finally we will configure and verify SNAT and DNAT. Use the topology and addressing table on page 7 for reference.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> Configure the PCs. a. Right-click PC1, and then click the Console icon. b. The PC1 solarwinds console window opens. Press Enter to access the PC1 prompt. c. Next, we will configure an IPv4 address, subnet mask, and default gateway on PC1. Referencing the topology, PC1 is assigned the IP address of 192.168.10.2, with a subnet mask of 255.255.255.0 or /24, and a default gateway of 192.168.10.1. Notice that the default gateway is the e0 IP address of Edge. In the PC1 console, enter the following command. 192.168.10.2, the subnet mask is 255.255.255.0, and the default gateway is 192.168.10.1. d. To verify these parameters, type show ip at the PC1 prompt. Notice the IP/MASK (1) and GATEWAY (2). e. Repeat steps 15a through 15d to configure PC2, PC3, and the InternetHost. Use the addressing table or topology for the proper configuration parameters for these devices. Use the show ip command on PC2 and PC3 to verify correct addressing.</h3><div class="code"><pre>PC1&gt; ip 192.168.10.2 255.255.255.0 192.168.10.1</pre></div><div class="call tip"><span class="k">Note</span><p>Notice that after checking for duplicate addresses, the IP address assigned to PC1 is:</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show interfaces</code> after addressing eth0/eth1</div><div class="step"><h3 class="fh"><span class="n">16</span> Configure the interfaces on Edge. a. The Edge router has two interfaces, e0 and e1. The e0 interface is the inside interface and is the default gateway for the internal hosts PC1, PC2 and PC3. The e1 interface is the outside interface, which connects to the Provider network. In this lab, the Provider multi-layer switch is already configured. In the real world, you would not have access to your service provider network. To configure Edge, we need to open a console as we did with the PCs. Right-click on the Edge router, and then click Console. b. The console displays the Welcome to Vyos banner and prompts you to login. In this lab, the Vyos router is named Edge in the topology. c. Login to the Vyos router (Edge) using the following credentials: d. At the vyos@vyos:~$ prompt, type show interfaces to see the currently installed interfaces and their IP address. Notice there are three Ethernet interfaces (1): eth0, eth1, eth2, and one loopback interface lo. Also notice that the three Ethernet interfaces have no IP address (2) assigned to them. e. To configure anything on Vyos, we need to enter configuration mode. At the Vyos prompt, type configure. Notice the prompt changed from a $ to a #. f. Next, we will configure IP parameters on interface eth0 and eth1. To configure eth0, type set interfaces ethernet eth0 address 192.168.10.1/24, and then press Enter. Next, set an interface description. Type set interfaces ethernet eth0 description 'Inside Network', and then press Enter. Interface descriptions are not mandatory but are useful reminders of what an interface is connected to or used for. g. Next repeat the same commands to configure eth1 using the address shown in the addressing table and topology. Use the description 'Outside Network'. h. To accept the configurations you just made, type commit. i.    Next, we will verify that eth0 and eth1 were properly configured. To do this, we must first exit configure mode. Type exit at the prompt. j.    Notice that the prompt changes back to the $ (1). Also observe the Warning: (2) message stating that configuration changes have not been saved. We will save the configuration later. k. To verify that eth0 and eth1 are correctly configured, type show interfaces at the $ prompt. l.    Notice that interface eth0 is assigned the IP Address /mask of 192.168.10.1/24, and eth1 is assigned 168.50.80.1/30. Validate that they are correct by referring to the addressing table and/or topology. m. Whenever you configure networking devices, it is a good habit to save the active configuration often. To save the Edge router configuration, navigate back to configuration mode. Type configure at the prompt. Next, to save the configuration, type save. Using Vyos, you must be in configuration mode to be able to save. n. Notice that the configuration was saved to '/config/config.boot' (1). This backup configuration is given the name config.boot by default. If Edge has to be rebooted for any reason, this saved configuration will be reloaded into the router.</h3><div class="code"><pre>Username: vyos Password: vyos</pre></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> DNAT working: outside access landing on the internal server</div><p class="task-head">Task 3.2 - Verify Network Connectivity</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Click PC1s console tab to access its console.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> At the PC1&gt; prompt, ping the IP address of PC2. Type ping 192.168.10.3, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Notice that 5 icmp ping packets were sent to and returned from the PC2 IP address of 192.168.10.3.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> From PC1, ping the PC3 IP address (192.168.10.200), and then the e0 interface IP address of the Edge router (192.168.10.1), and ping the eth1 interface of the Edge router (168.50.80.1). Pings should all be successful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Now we will verify connectivity from the Edge router to PC1 and also to the Provider P1 IP address interface. Click the Edge console tab. At the vyos prompt, type ping 192.168.10.2 to test connectivity to PC2.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Notice that the pings do not stop. To interrupt and stop the pings, press CTRL + C. In Linux, when a ping command is entered, continuous pings are sent.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Repeat the ping command to verify Edge can reach the Provider P1 interface. Type ping 168.50.80.2. Pings should be successful. Press CTRL + C to stop the pings.</h3></div>
+<p class="task-head">Task 3.3 - Conclusion</p>
+<p class="task-head">Task 4 - Source NAT (SNAT)</p>
+<p class="task-head">Task 4.1 - Configure SNAT</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the Edge (vyos) device console prompt, type configure to enter configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> To configure SNAT, source rules are created and applied as follows: i.  #set nat source rule 10 description 'SNAT' (Describe NAT purpose) ii.  #set nat source rule 10 outbound-interface 'eth1' (Specify outbound interface) iii.  #set nat source rule 10 source address '192.168.10.0/24' (Translate only traffic from private network 192.168.10.0/24) iv.   #set nat source rule 10 translation address 'masquerade' (Use and overload IP address on outbound interface eth1 which is 168.50.80.1)</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Enter the bolded commands on Edge. Press Enter after each line.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Type commit to accept the configurations you just made, and then type save to save the configuration.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Type exit to leave configuration mode.</h3></div>
+<p class="task-head">Task 4.2 - Verify and Test SNAT</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Configure the InternetHost (outside global) IP parameters. On the GNS3 topology, right-click InternetHost, and then click Console.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> In the solarwinds list of device consoles, click the InternetHost tab, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> At the InternetHost prompt, type ip 200.80.6.10/24 200.80.6.1 to enter the IP address/Mask and Default Gateway. Press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> At the Edge router prompt, type show configuration commands, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Look at the command output to locate the following. Your output may have additional commands. The output below reflects what we have configured in the Edge router. The first four lines (1) represents eth0 and eth1 interface configurations, and the last four lines (2) are the SNAT configurations.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> View the NAT table in Edge. Type show nat source translations to view the SNAT table.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> SNAT working: a PC reaching an outside host + <code class="inl">show nat source translations</code></div><div class="step"><h3 class="fh"><span class="n">7</span> Notice that there are no translations. The NAT table is empty. Why? Because we have not generated any traffic from the inside private network to be translated yet.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Now let's generate some traffic from the inside network to the outside network, and view SNAT translations. Navigate to the PC1s console. From the PC1&gt; prompt, type ping 200.80.6.10.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Notice the pings are successful. PC1 was able to access the InternetHost (an outside global address) on a completely different network.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Navigate back to the Edge console and type show nat source translations again.</h3><div class="call tip"><span class="k">Note</span><p>View the NAT table in Edge.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> The NAT table now displays active translations. Notice the Pre-NAT (1) address is the PC1 private IP address, and the Post-NAT (2) address is the Edge eth1 public IP address, and the Protocol (Prot) (3) is icmp.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> SNAT translations do not permanently stay in the NAT table. They age or timeout after 30 seconds. From the Edge prompt, type show nat source translations again.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> Notice there are no visible translations. They have aged or timed out.</h3></div>
+<p class="task-head">Task 4.3 - Conclusion</p>
+<p class="task-head">Task 5 - Destination NAT (DNAT)</p>
+<p class="task-head">Task 5.1 - Configure DNAT</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the Edge (vyos) device console prompt, type configure to enter configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> To configure SNAT, destination rules are created and applied as follows: i.     #set nat destination rule 20 description ' DNAT' (Describe NAT purpose) ii.     #set nat destination rule 20 inbound-interface 'eth1' (Specify inbound interface) iii.     #set nat destination rule 20 protocol 'icmp' (Protocol that will be forwarded) iv.      #set nat destination rule 20 translation address '192.168.10.200' (Internal host address that traffic will be forwarded to - this command replaces the destination address of an inbound packet with 192.168.10.200)</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Enter the bolded commands above on Edge. Press Enter after each line.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Type commit to accept the configurations you just made, and then type save to save the configuration.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Type exit to leave configuration mode.</h3></div>
+<p class="task-head">Task 5.2 - Verify and Test DNAT</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> At the Edge router prompt, type show configuration commands, and then press Enter. The output displays the NAT configuration. Notice both the DNAT (1) and SNAT (2) configurations.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Now let's generate some traffic from the InternetHost (outside) to PC3 (inside). Navigate to the</h3><div class="call tip"><span class="k">Note</span><p>InternetHost console. From the InternetHost&gt; prompt, type ping 192.168.10.200.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> There are five icmp echo replies displayed, indicating successful pings from 192.168.10.200. The</h3><div class="call tip"><span class="k">Note</span><p>InternetHost was able to access the private internal host PC3.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Navigate back to the Edge console, and type show nat destination translations. View the NAT table in Edge.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Notice that the Pre-NAT and Post-NAT addresses in the table are the same.</h3></div>
+<p class="task-head">Task 5.3 - Conclusion</p>
+<p class="task-head">Task 6.1 - Configure 1-to-1 NAT</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the Edge (vyos) device console prompt, type configure to enter configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> First, we will configure DNAT. Destination rules are created and applied as follows: i.     #set nat destination rule 30 description ' 1-to-1 NAT' (Describe NAT purpose) ii.     #set nat destination rule 30 destination address '168.50.80.1' (Outside eth0 IP iii.    #set nat destination rule 30 inbound-interface 'eth1' (Specify inbound interface) iv.     #set nat destination rule 30 translation address '192.168.10.200' (Internal host address that traffic will be forwarded to - this command replaces the destination address of an inbound packet with 192.168.10.200)</h3><div class="code"><pre>address)</pre></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show nat destination rules</code> listing your DNAT / 1-to-1 rules</div><div class="step"><h3 class="fh"><span class="n">3</span> Enter the bolded commands above on Edge. Press Enter after each line.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Next, we will configure SNAT. Source rules are created and applied as follows: i.     #set nat source rule 30 description '1-to-1 NAT' (Describe NAT purpose) ii.     #set nat source rule 30 outbound-interface 'eth1' (Specify outbound interface) iii.     #set nat source rule 30 source address '192.168.10.200' (Translate only traffic from host 192.168.10.200) iv.      #set nat source rule 30 translation address '168.50.80.1' (Use the IP address on outbound interface eth1 which is 168.50.80.1)</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Type commit to accept the configurations you just made, and then type save to save the configuration.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Type exit to leave configuration mode.</h3></div>
+<p class="task-head">Task 6.2 - Verify and Test 1-to-1 NAT</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> To test SNAT, generate some traffic from PC3 to the InternetHost. Navigate to the PC3 console. From the PC3&gt; prompt, type ping 200.80.6.10.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> There are five icmp echo replies displayed, indicating successful pings from 200.80.6.10.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Navigate back to the Edge console, and type show nat source translations. View the NAT table in Edge.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Notice that the Pre-NAT and Post-NAT addresses in the table display the SNAT translation.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> To test DNAT, generate some traffic from the InternetHost to PC3. Navigate to the</h3><div class="call tip"><span class="k">Note</span><p>InternetHost console. From the InternetHost&gt; prompt, type ping 192.168.10.200.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> There are five icmp echo replies displayed, indicating successful pings from 192.168.10.200.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Navigate back to the Edge console, and type show nat destination translations.</h3><div class="call tip"><span class="k">Note</span><p>View the NAT table in Edge.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Close the main console window and the GNS3 application.</h3></div>
+<p class="task-head">Task 6.3 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> The Internet Engineering Task Force (IETF)</h3><div class="code"><pre>https://www.ietf.org/rfc/rfc1918.txt</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> The Internet Assigned Numbers Authority (IANA)</h3><div class="code"><pre>https://www.iana.org/numbers</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Vyos Configuration Guide</h3><div class="code"><pre>https://docs.vyos.io/en/equuleus/configuration/index.html</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>NAT reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Type</th><th>Direction</th><th>What it rewrites</th><th>Typical use</th></tr></thead><tbody><tr><td>SNAT / PAT</td><td>Outbound</td><td>Source IP (+ port for PAT)</td><td>Many private hosts share one public IP</td></tr><tr><td>DNAT</td><td>Inbound</td><td>Destination IP/port</td><td>Port-forward to an internal server</td></tr><tr><td>1-to-1 (static)</td><td>Both</td><td>Full IP mapping</td><td>Dedicated public IP for one host</td></tr></tbody></table></div><dl class='ref'><dt>PAT (overload)</dt><dd>Port Address Translation — SNAT that also tracks source ports so thousands of sessions share one address. This is what home routers do.</dd><dt>masquerade</dt><dd>VyOS keyword for 'use the outbound interface's address' — the usual SNAT choice.</dd><dt>Inside local / global</dt><dd>The private vs translated public view of the <em>inside</em> host's address.</dd><dt>Why NAT exists</dt><dd>Conserves scarce IPv4 public addresses and hides internal addressing from the outside.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Config typed but nothing works</td><td>Forgot to <code class="inl">commit</code></td><td>VyOS applies nothing until you <code class="inl">commit</code>; then <code class="inl">save</code> so it survives reboot.</td></tr><tr><td>Outbound still fails</td><td>Wrong outbound interface or source subnet in the SNAT rule</td><td>Match the rule's <code class="inl">outbound-interface</code> to the real outside NIC and the <code class="inl">source address</code> to the inside subnet.</td></tr><tr><td>Port-forward doesn't reach the server</td><td>DNAT port/protocol/translation address wrong</td><td>Confirm protocol, destination port, and that the translation address is the server's real private IP.</td></tr><tr><td>Changes lost after reboot</td><td><code class="inl">save</code> not run</td><td>Always <code class="inl">save</code> after <code class="inl">commit</code> on VyOS.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Distinguish <strong>SNAT, DNAT/port forwarding, 1-to-1 (static) NAT</strong>, and <strong>PAT/overload</strong> — core objective 2.1 content.</li><li>Know <strong>why NAT exists</strong>: IPv4 conservation and address hiding.</li><li>Recognize <strong>port forwarding</strong> as a DNAT use case (exposing an internal service).</li><li>Understand that <strong>PAT lets many hosts share one public IP</strong> by tracking ports.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Three hundred office PCs reach the Internet through one public IP. Which NAT?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>PAT</strong> (overloaded SNAT) — it tracks source ports so many private hosts multiplex one public address.</div></div><div class="q"><p class="ask">2. You want outside users to reach an internal web server. Which NAT, and in which direction?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>DNAT</strong> (destination NAT / port forwarding) on <strong>inbound</strong> traffic — it rewrites the destination to the server's private IP.</div></div><div class="q"><p class="ask">3. On VyOS you built a rule but nothing changed. Why?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">You didn't <code class="inl">commit</code>. VyOS stages changes and only applies them on commit; follow with <code class="inl">save</code> to persist.</div></div><div class="q"><p class="ask">4. What's the difference between 1-to-1 NAT and DNAT?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">1-to-1 is a <strong>fixed, bidirectional</strong> full-address mapping; DNAT typically rewrites destination for specific inbound ports (port forwarding).</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show interfaces</code> after addressing eth0/eth1</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">SNAT working: a PC reaching an outside host + <code class="inl">show nat source translations</code></label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">DNAT working: outside access landing on the internal server</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show nat destination rules</code> listing your DNAT / 1-to-1 rules</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>configure</td><td>Enter VyOS config mode</td></tr><tr><td>set nat source rule N …</td><td>Build an SNAT rule</td></tr><tr><td>set nat destination rule N …</td><td>Build a DNAT/1-to-1 rule</td></tr><tr><td>… translation address masquerade</td><td>Use outbound interface IP (SNAT)</td></tr><tr><td>commit</td><td>Apply staged changes</td></tr><tr><td>save</td><td>Persist config across reboot</td></tr><tr><td>show nat source translations</td><td>See active translations</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab03.html"><span class="lbl">← Previous lab</span>Lab 03 · IPv6 Addressing</a><a class="nx" href="netplus_lab05.html"><span class="lbl">Next lab →</span>Lab 05 · Cloud Concepts and Virtualization</a></div>
 </main>
@@ -418,5 +510,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

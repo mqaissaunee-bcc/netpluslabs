@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="13">
@@ -272,10 +277,88 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
-  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p><strong>AAA</strong> is the framework behind controlled access: <strong>Authentication</strong> (who are you?), <strong>Authorization</strong> (what are you allowed to do?), and <strong>Accounting</strong> (what did you do?). Centralizing AAA means one place to manage users instead of local accounts on every device.</p><p>You load a VPN config into <strong>pfSense</strong>, configure pfSense as a <strong>RADIUS server</strong>, create user accounts, test them, and then authenticate <strong>remote VPN users against RADIUS</strong> — so the VPN checks credentials centrally instead of per-device.</p><div class="call tip"><span class="k">RADIUS vs TACACS+ — the exam's favorite comparison</span><strong>RADIUS</strong> (UDP 1812/1813) encrypts only the password and combines authn+authz — common for network access/VPN/Wi-Fi. <strong>TACACS+</strong> (TCP 49) encrypts the whole payload and separates authn/authz/acct — favored for device administration.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>pfSense</strong> serves as both the VPN server and the <strong>RADIUS</strong> authentication server. A remote client authenticates through the VPN using RADIUS-backed accounts.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Prepare the VPN + RADIUS server</p><div class="step"><h3><span class="n">1</span>Load the VPN configuration into pfSense</h3><p>Import the provided VPN configuration so there's a working tunnel to authenticate against. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Configure pfSense as a RADIUS server</h3><p>Enable the RADIUS (authentication) service on pfSense and register the VPN as a RADIUS client with a shared secret. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Create and test users</p><div class="step"><h3><span class="n">1</span>Add RADIUS user accounts</h3><p>Create the user accounts that will authenticate via RADIUS. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Test the accounts</h3><p>Use the built-in authentication test to confirm each account authenticates against RADIUS before involving the VPN. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Authenticate VPN users via RADIUS</p><div class="step"><h3><span class="n">1</span>Point the VPN at RADIUS and connect</h3><p>Set the VPN server's authentication backend to <strong>RADIUS</strong>, then connect the remote client using a RADIUS account. The credentials are now validated centrally. Confirm the login succeeds and the tunnel comes up. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>AAA reference</h2><div class="scroll"><table class="tbl"><thead><tr><th></th><th>RADIUS</th><th>TACACS+</th></tr></thead><tbody><tr><td>Transport / port</td><td>UDP 1812/1813</td><td>TCP 49</td></tr><tr><td>Encrypts</td><td>Password only</td><td>Entire payload</td></tr><tr><td>AAA separation</td><td>Combines authn + authz</td><td>Separates authn / authz / acct</td></tr><tr><td>Typical use</td><td>Network access, VPN, Wi-Fi (802.1X)</td><td>Device administration (router/switch CLI)</td></tr><tr><td>Origin</td><td>Open standard</td><td>Cisco (widely supported)</td></tr></tbody></table></div><dl class='ref'><dt>Authentication</dt><dd>Proving identity — password, certificate, token, biometric.</dd><dt>Authorization</dt><dd>Determining what an authenticated identity may do.</dd><dt>Accounting</dt><dd>Recording what was done — sessions, commands, duration — for audit.</dd><dt>802.1X</dt><dd>Port-based network access control that uses a RADIUS server to authenticate devices before granting network access.</dd><dt>MFA</dt><dd>Multi-factor authentication — combining two+ of: something you know / have / are.</dd><dt>Shared secret</dt><dd>The key a RADIUS client and server use to trust each other.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>RADIUS auth test fails</td><td>Wrong shared secret or user not created</td><td>Match the shared secret on client and server exactly; confirm the account exists.</td></tr><tr><td>VPN still uses local accounts</td><td>Auth backend not switched to RADIUS</td><td>Set the VPN server's authentication source to the RADIUS backend.</td></tr><tr><td>Client reachable but login rejected</td><td>RADIUS client (the VPN) not registered on the server</td><td>Add the VPN as a RADIUS client with its IP and shared secret.</td></tr><tr><td>Ports blocked</td><td>UDP 1812/1813 filtered</td><td>Permit RADIUS auth/acct UDP ports between the VPN and the RADIUS server.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Define <strong>Authentication, Authorization, Accounting</strong> precisely — a guaranteed objective-4.1 item.</li><li>Compare <strong>RADIUS (UDP 1812/1813, password-only encryption, combines authn+authz)</strong> vs <strong>TACACS+ (TCP 49, full-payload encryption, separates AAA)</strong>.</li><li>Know <strong>802.1X</strong> uses RADIUS for port-based access control.</li><li>Recognize <strong>MFA</strong> and centralized identity as core security concepts.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Name the three A's and what each answers.</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Authentication</strong> (who are you?), <strong>Authorization</strong> (what may you do?), <strong>Accounting</strong> (what did you do?).</div></div><div class="q"><p class="ask">2. You're securing CLI access to routers/switches and want full-payload encryption and command-level control. RADIUS or TACACS+?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>TACACS+</strong> — it encrypts the entire payload and separates authorization, making it ideal for device administration.</div></div><div class="q"><p class="ask">3. What ports does RADIUS use?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>UDP 1812</strong> (authentication) and <strong>UDP 1813</strong> (accounting). Older deployments used 1645/1646.</div></div><div class="q"><p class="ask">4. How does 802.1X use RADIUS?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A switch/AP (authenticator) forwards a device's credentials to the <strong>RADIUS server</strong>, which decides whether to grant network access.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">pfSense configured as a <strong>RADIUS server</strong> (client + shared secret set)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">A <strong>RADIUS user account</strong> created</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">A successful <strong>authentication test</strong> against RADIUS</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">A <strong>VPN login authenticated via RADIUS</strong> (tunnel up)</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>AAA</td><td>Authentication / Authorization / Accounting</td></tr><tr><td>RADIUS</td><td>UDP 1812/1813 — network access, Wi-Fi, VPN</td></tr><tr><td>TACACS+</td><td>TCP 49 — device admin, full encryption</td></tr><tr><td>802.1X</td><td>Port-based access control (uses RADIUS)</td></tr><tr><td>MFA</td><td>Two+ of know / have / are</td></tr><tr><td>Shared secret</td><td>Trust key between RADIUS client &amp; server</td></tr></table></section>
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p><strong>AAA</strong> is the framework behind controlled access: <strong>Authentication</strong> (who are you?), <strong>Authorization</strong> (what are you allowed to do?), and <strong>Accounting</strong> (what did you do?). Centralizing AAA means one place to manage users instead of local accounts on every device.</p><p>You load a VPN config into <strong>pfSense</strong>, configure pfSense as a <strong>RADIUS server</strong>, create user accounts, test them, and then authenticate <strong>remote VPN users against RADIUS</strong> — so the VPN checks credentials centrally instead of per-device.</p><div class="call tip"><span class="k">RADIUS vs TACACS+ — the exam's favorite comparison</span><strong>RADIUS</strong> (UDP 1812/1813) encrypts only the password and combines authn+authz — common for network access/VPN/Wi-Fi. <strong>TACACS+</strong> (TCP 49) encrypts the whole payload and separates authn/authz/acct — favored for device administration.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>pfSense</strong> serves as both the VPN server and the <strong>RADIUS</strong> authentication server. A remote client authenticates through the VPN using RADIUS-backed accounts.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Prepare the VPN + RADIUS server</p><div class="step"><h3><span class="n">1</span>Load the VPN configuration into pfSense</h3><p>Import the provided VPN configuration so there's a working tunnel to authenticate against. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Configure pfSense as a RADIUS server</h3><p>Enable the RADIUS (authentication) service on pfSense and register the VPN as a RADIUS client with a shared secret. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Create and test users</p><div class="step"><h3><span class="n">1</span>Add RADIUS user accounts</h3><p>Create the user accounts that will authenticate via RADIUS. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Test the accounts</h3><p>Use the built-in authentication test to confirm each account authenticates against RADIUS before involving the VPN. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Authenticate VPN users via RADIUS</p><div class="step"><h3><span class="n">1</span>Point the VPN at RADIUS and connect</h3><p>Set the VPN server's authentication backend to <strong>RADIUS</strong>, then connect the remote client using a RADIUS account. The credentials are now validated centrally. Confirm the login succeeds and the tunnel comes up. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Authentication, Authorization, Accounting (AAA)</p>
+<p class="task-head">Task 2 - RADIUS Server Configuration</p>
+<p class="task-head">Task 2.1 - Load a VPN Configuration into pfSense</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the login screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the WinOS machine, click Start, and then click the Google Chrome browser icon to open it.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the browser tab, type 192.168.1.254, the IP address of pfSense, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The pfSense GUI opens. Sign in to the pfSense machine using the following credentials:</h3><div class="code"><pre>Username: admin Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> The pfSense Status / Dashboard opens.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> On the top menu, click the Diagnostics icon, and then click Backup &amp; Restore.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> On the Backup &amp; Restore page, scroll down to the Restore Backup section, and then click Choose File.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> The PC window opens. Click the Desktop icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Next, double-click the Lab Files folder, and then double-click the pfSense Config Files folder.</h3><div class="call tip"><span class="k">Note</span><p>Next, double-click the Lab 12 folder.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> Click to select the config-pfSense.home.arpa file, and then click Open.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> You are directed back to the pfSense Restore Backup section. Click the red Restore Configuration button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> In the Are you sure you wish to restore configuration dialog box, click OK.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> The configuration loads and the following messages are displayed.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">16</span> It will take a few seconds for the firewall to reboot. You will have to log in to pfSense again.</h3><div class="call tip"><span class="k">Note</span><p>Click on the pfSense logo on the top left menu.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">17</span> Sign in to the pfSense machine using the following credentials:</h3><div class="code"><pre>Username: admin Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">18</span> From the pfSense Status/ Dashboard, click VPN, and then click OpenVPN.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">19</span> Under OpenVPN Servers, notice that this is a RemoteUserVPN (1). Notice the VPN Mode is Remote Access (User Auth) (2).</h3></div>
+<p class="task-head">Task 2.2 - Configure pfSense as a RADIUS Server</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> On the top menu, click the Services icon, and then click FreeRADIUS.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> From the FreeRADIUS menu, click Interfaces.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Next, click Add.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Under General Configuration, click the dropdown next to Interface Type and select Authentication. In the Description text box, type Authentication Interface. Next click Save. Leave the other fields as is. Please note that RADIUS uses port 1812 for Authentication.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> A successful <strong>authentication test</strong> against RADIUS</div><div class="step"><h3 class="fh"><span class="n">5</span> Repeat steps 3 and 4 to configure Accounting. Under General Configuration, click the dropdown next to Interface Type and select Accounting. In the Description text box, type Accounting Interface. Change the Port to 1813. RADIUS uses port 1813 for</h3><div class="call tip"><span class="k">Note</span><p>Accounting. Leave the other fields as is. Next, click Save.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Notice that two interfaces for authentication have been configured. One for Authentication (1) and one for Accounting (2). Next, you will configure NAS/Clients. Click the NAS/Client icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Click Add.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Under General Configuration, in the Client IP Address text box, type 127.0.0.1. For the Client Shortname, type Radius. For the Client Shared Secret, type netlab123. Leave all other fields the same, and then click Save. Note that the IPv4 address of 127.0.0.1 is a loopback address, used as the NAS (Network Attached Storage) client for this lab, which is pfSense firewall.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Next, we will configure the Authentication Server settings. Click the System icon on the pfSense menu.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> From the dropdown list, click User Manager.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Next, click Authentication Servers, and then click Add.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> Under Server Settings, type Authentication Server in the Descriptive Name text box. In the Type dropdown, select Radius. In the Hostname or IP address text box, type 127.0.0.1, and for the Shared Secret, type netlab123. Notice that the other RADIUS server settings match what was previously configured for Service Offered, Authentication, and Accounting ports. In the RADIUS NAS IP Attribute dropdown, select LAN- 192.168.1.254, and then click Save.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> pfSense configured as a <strong>RADIUS server</strong> (client + shared secret set)</div><div class="step"><h3 class="fh"><span class="n">13</span> Next, we will configure and add users. Click the Services icon in the pfSense menu, and then click FreeRADIUS.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> In the Users menu, click Add.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> Under General Configuration, enter user1 as the Username, and user1 as the Password.</h3><div class="call tip"><span class="k">Note</span><p>Leave all other fields as is, scroll down to the bottom of the page, and then click Save.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">16</span> Repeat steps 14 and 15 to create user2. Use user2 for both the Username and Password.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">17</span> Notice that both user1 and user2 have been created.</h3></div>
+<p class="task-head">Task 2.3 - Test RADIUS User Accounts</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Click the Diagnostics icon from the pfSense menu, and then select Authentication.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Under Authentication Test, from the dropdown for Authentication Server, select Authentication Server. Type in the credentials created for user1. Username: user1 and Password: user1. Next click Test.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> The message User user1 authenticated successfully is displayed, indicating successful authentication.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Change the Username and Password fields to user2 and click Test again.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> The message User user2 authenticated successfully is displayed, indicating successful authentication.</h3></div>
+<p class="task-head">Task 2.4 - Authenticate Remote Users over a VPN using RADIUS</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> First, we will check the VPN settings in pfSense, and ensure it is set to authenticate remote access users via RADIUS. On the pfSense menu, click VPN, and then select OpenVPN.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Under OpenVPN Servers, click the pencil icon to edit.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Under Mode Configuration, click the dropdown and ensure the Server Mode is Remote Access (User Auth), and the Backend for authentication is Authentication Server. Leave all other fields the same, scroll all the way to bottom of the page, and then click Save. Next, we will install and launch the OpenVPN client on WinOS. Once OpenVPN is launched, the client will be prompted for a username and password, which will be authenticated by the RADIUS server. If the credentials match the ones created in RADIUS, that user will authenticate the VPN connection. If not, the connection will fail.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> A <strong>RADIUS user account</strong> created</div><div class="step"><h3 class="fh"><span class="n">4</span> On the pfSense top menu, click VPN, and then select OpenVPN.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the VPN/ OpenVPN/ Servers window, click Client Export.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Scroll down to the OpenVPN Clients section. Notice under User, it states Authentication</h3><div class="call tip"><span class="k">Note</span><p>Only (No Cert). Click the blue icon labeled 10/2016/2019 for Legacy Windows Installers.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> The Save As dialog window opens. Click Desktop, and then click Save.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The openvpn-pfSense-UDP-1194-install-2.4.12-1601-Win10 installation file appears on the Desktop. Double-click to install.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> In the Open File-Security Warning window, click Run.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> The Welcome to the OpenVPN Win10 Setup Wizard opens. Click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Accept the License Agreement, and then click I Agree.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> In the Choose Components window, click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> In the Choose Install Location Window, leave the defaults, and then click Install.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> After the installation is complete, click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> Uncheck the Show Readme box, and then Click Finish.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">16</span> The OpenVPN Configuration Setup window opens. Click Install.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">17</span> In the Installation Complete window, click Close.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">18</span> Ensure that the OpenVPN GUI icon appears on the Desktop.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">19</span> Navigate to the WinOS desktop, and double-click the OpenVPN GUI icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">20</span> On the bottom right taskbar, you should see the OpenVPN icon. It is a PC with a lock on it. If you do not see the icon on the taskbar, click the up arrow to view it.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">21</span> Right-click the OpenVPN icon, and then click Connect.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">22</span> The OpenVPN Connection pfSense window opens, and you are prompted for a username and uassword. Remove the pre-populated username of ndguser.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">23</span> Use the user1 credentials that were added in the RADIUS server setup in pfSense.</h3><div class="call tip"><span class="k">Note</span><p>Username: user1 Password: user             Then click OK.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">24</span> The authentication is successful, and the VPN tunnel is formed between WinOS and pfSense. In this example, WinOS is the VPN client, and pfSense is the VPNserver. Notice that the remote user initiated the connection with 192.168.1.254 (1), the pfSense LAN IP Address, the Windows PC succeeded in obtaining a tunnel IP address of 10.10.10.2/24 (2) and Assigned IP: (3). Note, if the OpenVPN connection minimizes, repeat step 2 to restore by clicking Show Status.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">25</span> Now we will send some ICMP traffic over the VPN tunnel from WinOS to pfSense. We will test using both the LAN IP addresses and tunnel IP addresses. On WinOS, open command prompt by typing cmd in the search bar, and then click the Command Prompt App icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">26</span> At the WinOS command prompt, verify connection to pfSense over the tunnel by typing connectivity over the VPN tunnel. If ping fails initially, repeat the command.</h3><div class="code"><pre>ping 10.10.10.1, tand hen press Enter. Pings should be successful, indicating end-to-end</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">27</span> Next, ping the pfSense LAN IP address by typing ping 192.168.1.254, and then press</h3><div class="call tip"><span class="k">Note</span><p>Enter. Notice pings are also successful.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">28</span> Move your mouse over the OpenVPN connection in WinOS. Notice that the connection icon (1) is green, reflecting an authenticated open VPN connection, and the timestamp and assigned tunnel IP address (2) are displayed.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> A <strong>VPN login authenticated via RADIUS</strong> (tunnel up)</div><div class="step"><h3 class="fh"><span class="n">29</span> Right-click the OpenVPN connection icon, and then click Exit.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">30</span> At the Exit OpenVPN prompt, click Yes to exit.</h3></div>
+<p class="task-head">Task 2.5 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> pfSense Documentation</h3><div class="code"><pre>https://docs.netgate.com/pfsense/en/latest/</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>AAA reference</h2><div class="scroll"><table class="tbl"><thead><tr><th></th><th>RADIUS</th><th>TACACS+</th></tr></thead><tbody><tr><td>Transport / port</td><td>UDP 1812/1813</td><td>TCP 49</td></tr><tr><td>Encrypts</td><td>Password only</td><td>Entire payload</td></tr><tr><td>AAA separation</td><td>Combines authn + authz</td><td>Separates authn / authz / acct</td></tr><tr><td>Typical use</td><td>Network access, VPN, Wi-Fi (802.1X)</td><td>Device administration (router/switch CLI)</td></tr><tr><td>Origin</td><td>Open standard</td><td>Cisco (widely supported)</td></tr></tbody></table></div><dl class='ref'><dt>Authentication</dt><dd>Proving identity — password, certificate, token, biometric.</dd><dt>Authorization</dt><dd>Determining what an authenticated identity may do.</dd><dt>Accounting</dt><dd>Recording what was done — sessions, commands, duration — for audit.</dd><dt>802.1X</dt><dd>Port-based network access control that uses a RADIUS server to authenticate devices before granting network access.</dd><dt>MFA</dt><dd>Multi-factor authentication — combining two+ of: something you know / have / are.</dd><dt>Shared secret</dt><dd>The key a RADIUS client and server use to trust each other.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>RADIUS auth test fails</td><td>Wrong shared secret or user not created</td><td>Match the shared secret on client and server exactly; confirm the account exists.</td></tr><tr><td>VPN still uses local accounts</td><td>Auth backend not switched to RADIUS</td><td>Set the VPN server's authentication source to the RADIUS backend.</td></tr><tr><td>Client reachable but login rejected</td><td>RADIUS client (the VPN) not registered on the server</td><td>Add the VPN as a RADIUS client with its IP and shared secret.</td></tr><tr><td>Ports blocked</td><td>UDP 1812/1813 filtered</td><td>Permit RADIUS auth/acct UDP ports between the VPN and the RADIUS server.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Define <strong>Authentication, Authorization, Accounting</strong> precisely — a guaranteed objective-4.1 item.</li><li>Compare <strong>RADIUS (UDP 1812/1813, password-only encryption, combines authn+authz)</strong> vs <strong>TACACS+ (TCP 49, full-payload encryption, separates AAA)</strong>.</li><li>Know <strong>802.1X</strong> uses RADIUS for port-based access control.</li><li>Recognize <strong>MFA</strong> and centralized identity as core security concepts.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Name the three A's and what each answers.</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Authentication</strong> (who are you?), <strong>Authorization</strong> (what may you do?), <strong>Accounting</strong> (what did you do?).</div></div><div class="q"><p class="ask">2. You're securing CLI access to routers/switches and want full-payload encryption and command-level control. RADIUS or TACACS+?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>TACACS+</strong> — it encrypts the entire payload and separates authorization, making it ideal for device administration.</div></div><div class="q"><p class="ask">3. What ports does RADIUS use?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>UDP 1812</strong> (authentication) and <strong>UDP 1813</strong> (accounting). Older deployments used 1645/1646.</div></div><div class="q"><p class="ask">4. How does 802.1X use RADIUS?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A switch/AP (authenticator) forwards a device's credentials to the <strong>RADIUS server</strong>, which decides whether to grant network access.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">pfSense configured as a <strong>RADIUS server</strong> (client + shared secret set)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">A <strong>RADIUS user account</strong> created</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">A successful <strong>authentication test</strong> against RADIUS</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">A <strong>VPN login authenticated via RADIUS</strong> (tunnel up)</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>AAA</td><td>Authentication / Authorization / Accounting</td></tr><tr><td>RADIUS</td><td>UDP 1812/1813 — network access, Wi-Fi, VPN</td></tr><tr><td>TACACS+</td><td>TCP 49 — device admin, full encryption</td></tr><tr><td>802.1X</td><td>Port-based access control (uses RADIUS)</td></tr><tr><td>MFA</td><td>Two+ of know / have / are</td></tr><tr><td>Shared secret</td><td>Trust key between RADIUS client &amp; server</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab12.html"><span class="lbl">← Previous lab</span>Lab 12 · Remote Access Methods</a><a class="nx" href="netplus_lab14.html"><span class="lbl">Next lab →</span>Lab 14 · Using Appropriate Networking Commands and Tools</a></div>
 </main>
@@ -382,5 +465,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

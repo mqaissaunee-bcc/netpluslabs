@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="05">
@@ -272,10 +277,116 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
-  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p><strong>Virtualization</strong> runs multiple operating systems on one physical machine by abstracting the hardware with a <strong>hypervisor</strong>. The <strong>cloud</strong> is virtualization delivered as a service over the network. Understanding one makes the other make sense — which is why this lab has you build a VM by hand.</p><p>You enable <strong>Hyper-V</strong> (a hypervisor) in Windows, create a VM, install <strong>Xubuntu</strong> as the guest OS, explore VM operations, and take <strong>checkpoints/snapshots</strong> so you can roll back.</p><div class="call tip"><span class="k">Type 1 vs Type 2 — know the difference cold</span><strong>Type 1 (bare-metal)</strong> runs directly on hardware (ESXi, Hyper-V on Server, Proxmox) — for data centers. <strong>Type 2 (hosted)</strong> runs on top of an existing OS (VirtualBox, VMware Workstation) — for desktops. Hyper-V here behaves as the hosted case.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p>You work entirely on <strong>WinOS</strong>: enable the Hyper-V role, then create and run a guest VM inside it.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Install the hypervisor &amp; build a VM</p><div class="step"><h3><span class="n">1</span>Enable Hyper-V</h3><p>Add the <strong>Hyper-V</strong> feature (Server Manager → <em>Add Roles and Features</em>, or <em>Turn Windows features on or off</em>). Reboot if prompted. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Create a new virtual machine</h3><p>Open <strong>Hyper-V Manager → New → Virtual Machine</strong>. Set name, generation, memory, network (connect to a virtual switch), and a new virtual hard disk.</p></div><p class="task-head">Install and run the guest OS</p><div class="step"><h3><span class="n">1</span>Attach the install media &amp; install Xubuntu</h3><p>Point the VM's DVD drive at the Xubuntu ISO, start the VM, and run the installer. This is a full OS install inside the VM. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Explore VM operations</h3><p>Use the <strong>File</strong> and <strong>Action</strong> menus: Start, Shut Down, Save, Pause, and Settings. Note that <strong>Save</strong> freezes state to disk, unlike a full shutdown.</p></div><p class="task-head">Checkpoints / snapshots</p><div class="step"><h3><span class="n">1</span>Create a checkpoint</h3><p>With the VM running, <strong>Action → Checkpoint</strong>. This captures the VM's exact state so you can return to it. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Revert to the checkpoint</h3><p>Make a change inside the guest, then <strong>Apply</strong> the earlier checkpoint and watch the change disappear. Snapshots are your safety net before risky changes. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>Cloud &amp; virtualization reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Term</th><th>Means</th></tr></thead><tbody><tr><td>IaaS</td><td>Infrastructure as a Service — rent VMs, storage, networking (you manage the OS up)</td></tr><tr><td>PaaS</td><td>Platform as a Service — rent a runtime/platform (you manage just the app)</td></tr><tr><td>SaaS</td><td>Software as a Service — use finished software over the web (vendor manages all)</td></tr><tr><td>Public cloud</td><td>Shared provider infrastructure (AWS, Azure, GCP)</td></tr><tr><td>Private cloud</td><td>Cloud model on infrastructure dedicated to one organization</td></tr><tr><td>Hybrid cloud</td><td>Mix of public + private with orchestration between them</td></tr></tbody></table></div><dl class='ref'><dt>Hypervisor</dt><dd>Software that creates and runs VMs by abstracting physical hardware.</dd><dt>Type 1 (bare-metal)</dt><dd>Runs directly on hardware — data-center class.</dd><dt>Type 2 (hosted)</dt><dd>Runs on top of a host OS — desktop class.</dd><dt>Snapshot / checkpoint</dt><dd>A saved point-in-time VM state you can revert to.</dd><dt>Elasticity</dt><dd>A cloud's ability to scale resources up/down on demand.</dd><dt>VPC</dt><dd>Virtual Private Cloud — an isolated, private network segment inside a public cloud.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Hyper-V option greyed out</td><td>Virtualization disabled in firmware, or nested-virt not enabled</td><td>On the lab VM this is pre-arranged; confirm the Hyper-V feature actually installed and rebooted.</td></tr><tr><td>VM won't boot the installer</td><td>ISO not attached / wrong boot order</td><td>Attach the Xubuntu ISO to the VM's DVD drive and set it to boot first.</td></tr><tr><td>Guest has no network</td><td>VM not connected to a virtual switch</td><td>In VM Settings, bind the network adapter to an existing virtual switch.</td></tr><tr><td>Checkpoint confusion</td><td>Mixing 'Save' with 'Checkpoint'</td><td>Save = pause state to disk; Checkpoint = a revertible snapshot you can return to later.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Know <strong>IaaS / PaaS / SaaS</strong> and who manages what in each — a frequent exam item.</li><li>Distinguish <strong>public / private / hybrid</strong> cloud and the idea of a <strong>VPC</strong>.</li><li>Know <strong>Type 1 vs Type 2 hypervisors</strong> with examples.</li><li>Understand <strong>elasticity/scalability</strong> and <strong>snapshots</strong> as operational concepts.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. You rent bare VMs and install your own OS and apps. Which service model?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>IaaS</strong> — you manage from the operating system up; the provider manages the physical infrastructure.</div></div><div class="q"><p class="ask">2. ESXi installed directly on a server is which hypervisor type?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Type 1 (bare-metal)</strong> — it runs on the hardware with no host OS underneath.</div></div><div class="q"><p class="ask">3. Why take a checkpoint before a risky change?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">So you can <strong>revert</strong> to the exact prior state if the change breaks the VM.</div></div><div class="q"><p class="ask">4. What's a hybrid cloud?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A combination of <strong>public and private</strong> cloud with orchestration that lets workloads/data move between them.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">Hyper-V installed (Hyper-V Manager open)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">Your <strong>new VM</strong> created in Hyper-V Manager</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><strong>Xubuntu</strong> booted/installed inside the VM</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">A <strong>checkpoint</strong> created, and the VM after <strong>reverting</strong> to it</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>Type 1</td><td>Bare-metal hypervisor (ESXi, Hyper-V/Server)</td></tr><tr><td>Type 2</td><td>Hosted hypervisor (VirtualBox, VMware Workstation)</td></tr><tr><td>IaaS / PaaS / SaaS</td><td>Infra / Platform / Software as a Service</td></tr><tr><td>Checkpoint</td><td>Revertible VM snapshot</td></tr><tr><td>Save state</td><td>Freeze VM to disk (not a snapshot)</td></tr><tr><td>Virtual switch</td><td>Connects VMs to each other / the network</td></tr></table></section>
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p><strong>Virtualization</strong> runs multiple operating systems on one physical machine by abstracting the hardware with a <strong>hypervisor</strong>. The <strong>cloud</strong> is virtualization delivered as a service over the network. Understanding one makes the other make sense — which is why this lab has you build a VM by hand.</p><p>You enable <strong>Hyper-V</strong> (a hypervisor) in Windows, create a VM, install <strong>Xubuntu</strong> as the guest OS, explore VM operations, and take <strong>checkpoints/snapshots</strong> so you can roll back.</p><div class="call tip"><span class="k">Type 1 vs Type 2 — know the difference cold</span><strong>Type 1 (bare-metal)</strong> runs directly on hardware (ESXi, Hyper-V on Server, Proxmox) — for data centers. <strong>Type 2 (hosted)</strong> runs on top of an existing OS (VirtualBox, VMware Workstation) — for desktops. Hyper-V here behaves as the hosted case.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p>You work entirely on <strong>WinOS</strong>: enable the Hyper-V role, then create and run a guest VM inside it.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Install the hypervisor &amp; build a VM</p><div class="step"><h3><span class="n">1</span>Enable Hyper-V</h3><p>Add the <strong>Hyper-V</strong> feature (Server Manager → <em>Add Roles and Features</em>, or <em>Turn Windows features on or off</em>). Reboot if prompted. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Create a new virtual machine</h3><p>Open <strong>Hyper-V Manager → New → Virtual Machine</strong>. Set name, generation, memory, network (connect to a virtual switch), and a new virtual hard disk.</p></div><p class="task-head">Install and run the guest OS</p><div class="step"><h3><span class="n">1</span>Attach the install media &amp; install Xubuntu</h3><p>Point the VM's DVD drive at the Xubuntu ISO, start the VM, and run the installer. This is a full OS install inside the VM. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Explore VM operations</h3><p>Use the <strong>File</strong> and <strong>Action</strong> menus: Start, Shut Down, Save, Pause, and Settings. Note that <strong>Save</strong> freezes state to disk, unlike a full shutdown.</p></div><p class="task-head">Checkpoints / snapshots</p><div class="step"><h3><span class="n">1</span>Create a checkpoint</h3><p>With the VM running, <strong>Action → Checkpoint</strong>. This captures the VM's exact state so you can return to it. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Revert to the checkpoint</h3><p>Make a change inside the guest, then <strong>Apply</strong> the earlier checkpoint and watch the change disappear. Snapshots are your safety net before risky changes. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Cloud Computing versus Virtualization</p>
+<p class="task-head">Task 2 - Create a Virtual Machine Using a Type 2 Hypervisor</p>
+<p class="task-head">Task 2.1 - Install Hyper-V in WinOS</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the log in screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the bottom Windows Task bar, click the Server Manager icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> The Server Manager Dashboard opens. In the Welcome to Server Manager window, click Add Roles and Features.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> You may have to wait several seconds for the Add Roles and Feature Wizard to open. In the</h3><div class="call tip"><span class="k">Note</span><p>Before you begin window, click Next.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the Select installation type window, select Role-based or feature-based installation, and then click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> In the Select destination server window, select Select a server from the server pool. Under Server Pool, ensure that WinOS with IP address of 169.254.135.69, 192.168.1.20 is visible, and then click Next. Please note that you may have to expand the IP Address panel to view.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> In the Select server roles window, under Roles, select Hyper-V.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> The Add Roles and Features Wizard opens. Click the Add Features button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> After a few seconds, in the Roles window, you should see Hyper-V selected. Click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> In the Features window, click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> In the Hyper-V window, click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> On the Create Virtual Switches page, select Ethernet0 under Network adapters, and then click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> On the Virtual Machine Migration page, click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">16</span> On the Default Stores page, keep the default, then click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">17</span> On the Confirm installation selections page, select Restart the destination server automatically if required. In the Add Roles and Features Wizard pop-up window, click Yes, and then click Install.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">18</span> The Installation progress window is displayed. After a minute or so, the WinOS machine restarts.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">19</span> Log back into the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<p class="task-head">Task 2.2 - Create a New Virtual Machine using Hyper-V</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the WinOS bottom Taskbar, click the Windows Start logo.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Scroll down to the Windows Administrative Tools folder, and then click the dropdown arrow.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Click the Hyper-V Manager icon to launch.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Hyper-V installed (Hyper-V Manager open)</div><div class="step"><h3 class="fh"><span class="n">4</span> The Hyper-V Manager opens.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Now we will create a VM. On the top menu bar, click the Action tab. Select New &gt; Virtual Machine.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The New Virtual Machine Wizard Opens. In the Before You Begin window, click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the Specify Name and Location window, in the Name: field, type Xubuntu, and then click Next.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <strong>Xubuntu</strong> booted/installed inside the VM</div><div class="step"><h3 class="fh"><span class="n">8</span> In the Specify Generation window, keep Generation 1 selected, and then click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> In the Assign Memory window, change the Startup Memory to 2048 MB. Leave Use</h3><div class="call tip"><span class="k">Note</span><p>Dynamic Memory for this virtual machine unchecked, and then click Next.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> In the Configure Networking window, click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> In the Connect Virtual Hard Disk window, change the Size: to 20 GB, and then click Next.</h3></div>
+<p class="task-head">Task 2.3 - Conclusion</p>
+<p class="task-head">Task 3 - Prepare and Install a Guest Operating System on the Virtual Machine</p>
+<p class="task-head">Task 3.1 - Install Guest OS</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Navigate back to the Hyper-V manager in WinOS. You should see the Installation Options screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> In the Installation Options window, select Install an operating system from a bootable</h3><div class="call tip"><span class="k">Note</span><p>CD/DVD-ROM. Under Media, select Image file (.iso), and then click Browse.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> In the Open window, click the Desktop icon, and then double-click the Lab Files folder to open.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Double-click the ISOs folder to open.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> The ISOs folder displays an .iso archive file. ISO stands for Identical Storage image of Optical media. It contains the same data you would have on an optical disk containing an OS.</h3><div class="call tip"><span class="k">Note</span><p>This .iso is the Xubuntu OS image file. Notice the Name (1) and Type (2).</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Click to select the xubuntu-22.04.2-desktop-amd64 file, and then click Open.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the Installation Options window, click Next.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The Completing the New Virtual Machine Wizard window displays the Summary of configured parameters for the new VM. Click Finish.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> The Hyper-V Manager window displays the newly created VM as Xubuntu.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Your <strong>new VM</strong> created in Hyper-V Manager</div><div class="step"><h3 class="fh"><span class="n">10</span> Notice that the State is Off. To turn on the Xubuntu VM, double-click the Xubuntu icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> The Xubuntu on WinOS - Virtual machine Connection window displays the VM and its</h3><div class="call tip"><span class="k">Note</span><p>Status. Notice the Status is Off.</p></div></div>
+<p class="task-head">Task 3.2 - Install and Verify Xubuntu</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Click the Start button in the Xubuntu VM.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> The Xubuntu VM starts up, and after a minute or so, the GNU GRUB window appears. Here you can determine how Xubuntu can be installed, as well as Test memory.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Use the up and down arrows to select *Try or Install Xubuntu, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Xubuntu loads, and after a few seconds, the Install and Welcome screen appears.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the Welcome window, click Install Xubuntu. This may take a minute or so.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> In the Keyboard layout screen, select your preferred language, and then click Continue. The screenshot below uses English (US) as the default.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the Updates and other software screen, select Normal installation, and then click Continue.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> In the Installation type screen, select Erase disk and install Xubuntu, and then click Install Now.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> In the Write the changes to disks? pop-up window, click Continue.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> In the Where are you? screen, keep New York as the default, and then click Continue.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> In the Who are you? screen, enter the information as follows: •    Your name: NDG •    Your computer's name: (will automatically populate) •    Pick a username: (will automatically populate) •    Choose a password: NDGlabpass123! •    Confirm your password: NDGlabpass123!</h3><div class="call tip"><span class="k">Note</span><p>Select Require my password to log in, and then click Continue.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> The Welcome to Ubuntu screen appears, and the installation process begins. During the installation process, several windows will appear with messages and announcements. The installation will take a few minutes to complete.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> Once Xubuntu is installed, the Installation Complete window appears. Click Restart Now.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> Xubuntu restarts. Press the Enter key anywhere in the black space. After a few seconds, the Xubuntu Desktop loads and prompts for a login password. Type in the password created during installation of NDGlabpass123! Then click Log In.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> A <strong>checkpoint</strong> created, and the VM after <strong>reverting</strong> to it</div><div class="step"><h3 class="fh"><span class="n">15</span> The Xubuntu Desktop icons (1) appear, as well as icons in the top right Taskbar (2).</h3></div>
+<div class="step"><h3 class="fh"><span class="n">16</span> Explore the Taskbar by clicking the icons on the top right.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">17</span> Double-click the Home folder on the Desktop.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">18</span> Explore the Places (1), Devices (2), and Network (3) in Xubuntu.</h3></div>
+<p class="task-head">Task 3.3 - Conclusion</p>
+<p class="task-head">Task 4 - Operations of the Virtual Machine</p>
+<p class="task-head">Task 4.1 - The File Tab</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Click File &gt; Settings to view the current settings of the VM.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> In the Settings for Xubuntu on WinOS window, there is a Hardware (1) and Management (2) section. Here you can view and/or modify the hardware configuration of the VM, as well as Management parameters. Notice that Add Hardware (3) is highlighted in blue and selected, and on the right, there are options to Add Hardware (4).</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Click the Memory icon on the left. Notice the amount of RAM (2048 MB) is what was allocated when the VM was being created. If more RAM is required, we can modify it here.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Under the Management section, click the Name icon. Notice that the current name of the</h3><div class="call tip"><span class="k">Note</span><p>VM (Xubuntu) is displayed and can be edited.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Explore some of the other settings, but do not change any. Close the Settings for Xubuntu on WinOS.</h3></div>
+<p class="task-head">Task 4.2 - The Action Tab</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the top menu bar of the Xubuntu VM, view the Tabs (1) and the Icons (2) available.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Click the Action tab. Notice the options available to Turn Off, Shut Down, Save, Pause, or Reset (1) the VM. Notice the Checkpoint and Revert options (2). We will use those in the next section.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> The icons under the tabs can also be used to perform the same tasks. Move and hover your mouse over them to see the description of their functions.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> As you may be thinking, what is the difference between the Turn Off and Shut Down actions? The Shut Down action will shut down the OS in the VM. However, the Turn Off action will power down the VM. Turn off the VM by clicking the Turn Off button to the left of the red button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the Turn Off Machine window, click Turn Off.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The VM turns off. To turn it back on, Click Start.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> The VM restarts and reloads Xubuntu.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Explore the Shut Down, Save, Pause, and Reset actions on the VM.</h3></div>
+<p class="task-head">Task 4.3 - Conclusion</p>
+<p class="task-head">Task 5 - Checkpoints or Snapshots</p>
+<p class="task-head">Task 5.1 - Create a Checkpoint</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> If Xubuntu is turned off, restart it, then log in. In the Xubuntu Desktop top right Taskbar, click the speaker icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Click the Mute blue button to the right of the volume slider bar.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Notice that the speaker icon and the mute button are grayed out. Click the speaker icon to close this window.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Note the date and time in the upper right Taskbar.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Next, we will take a checkpoint. On the top left Toolbar, click the Checkpoint icon next to the green arrow button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The Checkpoint Name window opens. In the text box, type Audio Checkpoint as the checkpoint name, and then click Yes.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the Virtual Machine Checkpoint window, click OK. This creates a production checkpoint.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Turn off the Xubuntu VM. Click the Turn Off icon in the top Toolbar.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> In the Turn Off Machine window, click Turn Off.</h3></div>
+<p class="task-head">Task 5.2 - Revert Back to a Checkpoint</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the Xubuntu on WinOS VM, click Start.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> After Xubuntu loads, log in, and then view the Desktop. Notice the date and time are current.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Click the Revert button in the top right Toolbar. This is the curved green circle.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> The Revert Virtual Machine window asks if want to revert the VM to its previous checkpoint. Click Revert.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> The Xubuntu VM restarts and then reverts back to the point where the checkpoint was created. Notice that the time and date are the exact time the checkpoint was created.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Turn off the Xubuntu VM.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the Hyper-V Manager in the middle of the page, notice there is a Checkpoints (1) section. Here is where you can view checkpoints created on this VM. Notice the Audio Checkpoint (2) checkpoint.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Close the Hyper-V Manager.</h3></div>
+<p class="task-head">Task 5.3 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> The National Institute of Standards and Technology (NIST)</h3><div class="code"><pre>https://csrc.nist.gov/publications/detail/sp/800-145/final</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>Cloud &amp; virtualization reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Term</th><th>Means</th></tr></thead><tbody><tr><td>IaaS</td><td>Infrastructure as a Service — rent VMs, storage, networking (you manage the OS up)</td></tr><tr><td>PaaS</td><td>Platform as a Service — rent a runtime/platform (you manage just the app)</td></tr><tr><td>SaaS</td><td>Software as a Service — use finished software over the web (vendor manages all)</td></tr><tr><td>Public cloud</td><td>Shared provider infrastructure (AWS, Azure, GCP)</td></tr><tr><td>Private cloud</td><td>Cloud model on infrastructure dedicated to one organization</td></tr><tr><td>Hybrid cloud</td><td>Mix of public + private with orchestration between them</td></tr></tbody></table></div><dl class='ref'><dt>Hypervisor</dt><dd>Software that creates and runs VMs by abstracting physical hardware.</dd><dt>Type 1 (bare-metal)</dt><dd>Runs directly on hardware — data-center class.</dd><dt>Type 2 (hosted)</dt><dd>Runs on top of a host OS — desktop class.</dd><dt>Snapshot / checkpoint</dt><dd>A saved point-in-time VM state you can revert to.</dd><dt>Elasticity</dt><dd>A cloud's ability to scale resources up/down on demand.</dd><dt>VPC</dt><dd>Virtual Private Cloud — an isolated, private network segment inside a public cloud.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Hyper-V option greyed out</td><td>Virtualization disabled in firmware, or nested-virt not enabled</td><td>On the lab VM this is pre-arranged; confirm the Hyper-V feature actually installed and rebooted.</td></tr><tr><td>VM won't boot the installer</td><td>ISO not attached / wrong boot order</td><td>Attach the Xubuntu ISO to the VM's DVD drive and set it to boot first.</td></tr><tr><td>Guest has no network</td><td>VM not connected to a virtual switch</td><td>In VM Settings, bind the network adapter to an existing virtual switch.</td></tr><tr><td>Checkpoint confusion</td><td>Mixing 'Save' with 'Checkpoint'</td><td>Save = pause state to disk; Checkpoint = a revertible snapshot you can return to later.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Know <strong>IaaS / PaaS / SaaS</strong> and who manages what in each — a frequent exam item.</li><li>Distinguish <strong>public / private / hybrid</strong> cloud and the idea of a <strong>VPC</strong>.</li><li>Know <strong>Type 1 vs Type 2 hypervisors</strong> with examples.</li><li>Understand <strong>elasticity/scalability</strong> and <strong>snapshots</strong> as operational concepts.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. You rent bare VMs and install your own OS and apps. Which service model?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>IaaS</strong> — you manage from the operating system up; the provider manages the physical infrastructure.</div></div><div class="q"><p class="ask">2. ESXi installed directly on a server is which hypervisor type?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Type 1 (bare-metal)</strong> — it runs on the hardware with no host OS underneath.</div></div><div class="q"><p class="ask">3. Why take a checkpoint before a risky change?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">So you can <strong>revert</strong> to the exact prior state if the change breaks the VM.</div></div><div class="q"><p class="ask">4. What's a hybrid cloud?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A combination of <strong>public and private</strong> cloud with orchestration that lets workloads/data move between them.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">Hyper-V installed (Hyper-V Manager open)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">Your <strong>new VM</strong> created in Hyper-V Manager</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><strong>Xubuntu</strong> booted/installed inside the VM</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">A <strong>checkpoint</strong> created, and the VM after <strong>reverting</strong> to it</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>Type 1</td><td>Bare-metal hypervisor (ESXi, Hyper-V/Server)</td></tr><tr><td>Type 2</td><td>Hosted hypervisor (VirtualBox, VMware Workstation)</td></tr><tr><td>IaaS / PaaS / SaaS</td><td>Infra / Platform / Software as a Service</td></tr><tr><td>Checkpoint</td><td>Revertible VM snapshot</td></tr><tr><td>Save state</td><td>Freeze VM to disk (not a snapshot)</td></tr><tr><td>Virtual switch</td><td>Connects VMs to each other / the network</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab04.html"><span class="lbl">← Previous lab</span>Lab 04 · Understanding Network and Port Address Translation</a><a class="nx" href="netplus_lab06.html"><span class="lbl">Next lab →</span>Lab 06 · Routing Technologies</a></div>
 </main>
@@ -382,5 +493,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

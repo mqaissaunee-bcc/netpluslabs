@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="06">
@@ -272,7 +277,7 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
   <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>A router connects different networks and decides, per packet, where to send it next by consulting its <strong>routing table</strong>. A route can be <strong>directly connected</strong> (the router's own interfaces), <strong>static</strong> (you typed it), or <strong>dynamic</strong> (learned by a protocol — next lab).</p><p>Here you configure <strong>static routes</strong> so R1 and R2 can reach each other's LANs, add a <strong>default route</strong> (<code class="inl">0.0.0.0/0</code> — the 'everything else' route), and configure <strong>jumbo frames</strong> by raising the interface MTU. Everything is on <strong>VyOS</strong> routers in GNS3.</p><div class="call tip"><span class="k">Static vs default route</span>A static route points to one specific destination network. A <strong>default route</strong> is the catch-all for any destination not matched by a more specific route — the 'gateway of last resort.'</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p>In <strong>GNS3</strong>: two <strong>VyOS routers (R1, R2)</strong> connecting separate LANs, with host PCs. You reach each router by console and build config with VyOS <code class="inl">set</code> commands.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Basic addressing &amp; reading the table</p><div class="step"><h3><span class="n">1</span>Address the interfaces</h3><div class="code"><pre data-copy="configure
@@ -295,7 +300,87 @@ commit ; save</pre></div><p>Confirm the <code class="inl">S*</code> default appe
 commit ; save
 show interface ethernet eth0">set interfaces ethernet eth0 mtu 9000
 commit ; save
-show interface ethernet eth0</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>Routing reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Route code</th><th>Means</th></tr></thead><tbody><tr><td><code class="inl">C</code></td><td>Directly connected (the router's own interface subnet)</td></tr><tr><td><code class="inl">S</code></td><td>Static (manually configured)</td></tr><tr><td><code class="inl">S*</code></td><td>Static default route (gateway of last resort)</td></tr><tr><td><code class="inl">O</code> / <code class="inl">R</code> / <code class="inl">B</code></td><td>OSPF / RIP / BGP (dynamic — next lab)</td></tr></tbody></table></div><dl class='ref'><dt>Next hop</dt><dd>The IP of the neighboring router a packet is handed to on the way to its destination.</dd><dt>Default route</dt><dd><code class="inl">0.0.0.0/0</code> (IPv4) or <code class="inl">::/0</code> (IPv6) — matches any destination not covered by a more specific route.</dd><dt>Administrative distance</dt><dd>A route's trustworthiness ranking when multiple sources offer the same prefix (connected &lt; static &lt; dynamic).</dd><dt>Longest-prefix match</dt><dd>Routers pick the most specific matching route (the longest mask) first.</dd><dt>MTU / jumbo frame</dt><dd>Maximum frame payload; standard is 1500 bytes, jumbo is up to ~9000 — must match end-to-end.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Static route added but far LAN unreachable</td><td>Return route missing on the other router</td><td>Routing must work <em>both ways</em> — add the mirror-image route on R2 back to R1's LAN.</td></tr><tr><td>Route typed but not in table</td><td>Wrong next-hop, or no <code class="inl">commit</code></td><td>Confirm the next-hop is reachable (directly connected) and that you committed.</td></tr><tr><td>Jumbo frames don't help / break pings</td><td>MTU mismatch along the path</td><td>Every device on the path must support the same MTU; a single 1500-byte link fragments or drops jumbo frames.</td></tr><tr><td>Default route ignored</td><td>A more specific route matches first</td><td>That's correct behavior — longest-prefix match wins; the default only catches <em>unmatched</em> traffic.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Read a <strong>routing table</strong> and identify route source codes (C/S/O/etc.).</li><li>Know <strong>static vs default vs dynamic</strong> routing and when each fits.</li><li>Understand <strong>administrative distance</strong> and <strong>longest-prefix match</strong> as tie-breakers.</li><li>Know <strong>MTU / jumbo frames (9000)</strong> and that MTU must be consistent end-to-end.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. You add a static route on R1 to R2's LAN but pings still fail. First thing to check?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The <strong>return path</strong> — R2 needs a route back to R1's LAN. Routing has to be bidirectional.</div></div><div class="q"><p class="ask">2. What does 0.0.0.0/0 represent?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The <strong>default route</strong> — the gateway of last resort for any destination not matched by a more specific route.</div></div><div class="q"><p class="ask">3. Two routes match a destination: /24 and /16. Which wins?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The <strong>/24</strong> — longest-prefix (most specific) match always wins.</div></div><div class="q"><p class="ask">4. Why must jumbo frames be configured end-to-end?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A device with a smaller MTU along the path will fragment or drop the oversized frames, so a single mismatched hop defeats the benefit.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show ip route</code> before and after adding a <strong>static route</strong> (the new <code class="inl">S</code> entry)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">Successful <strong>ping to a remote LAN</strong> across the static route</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><code class="inl">show ip route</code> showing the <strong>default route</strong> (<code class="inl">S*</code>)</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show interface ethernet eth0</code> with <strong>MTU 9000</strong></label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>show ip route</td><td>View IPv4 routing table</td></tr><tr><td>show ipv6 route</td><td>View IPv6 routing table</td></tr><tr><td>set protocols static route A.B.C.D/M next-hop X</td><td>Add a static route</td></tr><tr><td>set protocols static route 0.0.0.0/0 next-hop X</td><td>Add a default route</td></tr><tr><td>set interfaces ethernet ethN mtu 9000</td><td>Enable jumbo frames</td></tr><tr><td>commit ; save</td><td>Apply + persist (VyOS)</td></tr></table></section>
+show interface ethernet eth0</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology and Addressing Table</p>
+<p class="task-head">Task 2 - Static Routing</p>
+<p class="task-head">Task 3 - Basic Device Configurations</p>
+<p class="task-head">Task 3.1 - End User Device and Basic Router Configuration</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the log in screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> On the Windows Desktop, double-click the Lab Files folder.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the Lab Files folder, double-click the Lab 06 GNS3 Portable Project File.</h3><div class="call tip"><span class="k">Note</span><p>The Project window opens with Lab 06 in the Name field. Click OK to open Lab 06.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> It will take about 1 minute for Lab 06 to load. You will see the Please wait screen displaying the progress.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> The Lab 06 GNS3 network topology is now visible and matches the routing topology.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The network consists of two LANs separated by two routers. LAN 1 (highlighted in blue) consists of 2 PCs: PC1 and PC2 (1), and a layer 2 switch, S1 (2). LAN 2 (highlighted in yellow) consists of 2 PCsL PC3 and PC4 (3), and a layer 2 switch, S2 (4). The routers R1 and R2 (5) provide interconnectivity between the two LANs through a WAN connection (highlighted in purple). All devices have hostnames and are labeled in the topology. Also notice that most devices have a red square box on their interfaces indicating that these devices are not powered on, except switch S1 and S2.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Next, we need to start the devices in the network. In the top menu bar, click the big green arrow to start all nodes. In the Confirm Start All window, click Yes.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> All connections between devices are now green, indicating all devices have started. Notice that in the Topology Summary, all interface nodes have also turned from red to green. The GNS3 network is now ready for configuration. In the next steps, we configure dual-stack IP addressing parameters on PC1, PC2, PC3, and PC4. We will then configure dual-stack IP addressing on the interfaces of both routers, and finally we will verify and test the configurations. Use the topology and addressing table on page 6 for reference.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Configure the PCs. a. Right-click PC1, and then click the Console icon. b. The PC1 solarwinds console window opens. Press Enter to access the PC1 prompt. c. Next, we will configure an IPv4 address, subnet mask, and default gateway on PC1. Referencing the addressing table, PC1 is assigned the IPv4 address of 192.168.10.2, with a subnet mask of 255.255.255.0 or /24, and a default gateway of 192.168.10.1. Notice that the default gateway is the e0 IP address of R1. In the PC1 console, enter the following command. 192.168.10.2, the subnet mask is 255.255.255.0, and the default gateway is 192.168.10.1. d. To verify these parameters, type show ip at the PC1 prompt. Notice the IP/MASK (1) and GATEWAY (2) matches what was configured. e. Repeat steps 11a through 11d to configure PC2, PC3, and PC4. Use the addressing table for the proper configuration parameters for these devices. Use the show ip command on PC2, PC3, and PC4 to verify correct addressing.</h3><div class="code"><pre>PC1&gt; ip 192.168.10.2 255.255.255.0 192.168.10.1</pre></div><div class="call tip"><span class="k">Note</span><p>Notice that after checking for duplicate addresses, the IP address assigned to PC1 is:</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show ip route</code> showing the <strong>default route</strong> (<code class="inl">S*</code>)</div><div class="step"><h3 class="fh"><span class="n">12</span> Since this is a dual stack topology, we also need to configure IPv6 parameters on PC1 through PC4. a. Next, we will configure an IPv6 address, prefix length, and default gateway on PC1. Referencing the addressing table, PC1 is assigned the IPv6 address of 2000:0b32:c0e9:1::2, with a prefix-length of /64 and an IPv6 default gateway of fe80::. Notice that the default gateway is the link-local IPv6 address of R1. In the PC1 console, enter the following command. PC1&gt; ip 2000:0b32:c0e9:1::2/64 fe80:: b. To verify these parameters, type show ipv6 at the PC1 prompt. Notice the LINK- c. Repeat steps 12a and 12b to configure IPv6 addressing on PC2, PC3, and PC4. Use the addressing table for the proper configuration parameters for these devices. Use the show ipv6 command on PC2, PC3, and PC4 to verify correct addressing. Next, we need to configure the routers R1 and R2 with basic device configuration parameters. First you will login to the routers, then configure hostnames to identify the routers, then configure interface addressing parameters. Let's start with R1.</h3><div class="call tip"><span class="k">Note</span><p>LOCAL SCOPE ADDRESS (1) and the GLOBAL SCOPE address (2) are displayed.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> Log in to R1. a. To configure R1, we need to open a console as we did with the PCs. Right-click on the R1 router, and then click Console. b. The console displays the Welcome to Vyos banner and prompts you to log in. In this lab, a Vyos router is used as R1 and R2 in the topology. c. Login to the Vyos router (R1) using the following credentials: d. Enter configuration mode. At the Vyos prompt, type configure. Notice the prompt changed from a $ to a #.</h3><div class="code"><pre>Username: vyos Password: vyos</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> Configure Host Name. a. At the vyos@vyos:~# prompt, type set system host-name R1, and then press Enter. b. Type commit to apply the changes to the active configuration, and then type exit to leave configuration mode. c. Type configure again to enter configuration mode to see the changes. Notice that the router prompt now includes the host name of R1. d. Type save to save this change in the R1 running (active) configuration.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> Repeat steps 13 and 14 to console, and then log in to R2 and repeat the steps to configure a host name of R2.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">16</span> Next, you will configure the interfaces on the routers. R1 and R2 both have two interfaces, e0 and e1. The e0 interface on R1 is the LAN 1 interface, and provides the default gateway for the internal hosts PC1 and PC2. The e1 interface on R2 is the LAN 2 interface, and provides the default gateway for the internal hosts PC3 and PC4. The e1 interface on R1 and the e0 interface on R2 are the WAN interfaces which connect to R1 to R2. a. Click the console tab for R1. At the vyos@R1:~$ prompt, type exit to exit configuration mode. Next type show interfaces to see the currently installed interfaces and their IP address. Notice that none of the two Ethernet interfaces have IP address assigned to them. b. At the Vyos prompt, type configure to re-enter configuration mode. c. Next, you will configure IPv4 parameters on interface eth0 and eth1 for R1. To then press Enter. Next, set an interface description. Type set interfaces ethernet eth0 description 'LAN 1', and then press Enter. Interface descriptions are not mandatory, but are useful reminders of what an interface is connected to or used for. d. Next, repeat the same commands to configure eth1 using the address shown in the addressing table. Use the description 'WAN to R2'. e. Next, you will configure IPv6 addressing on the same interfaces for R1. We will only with eth0, type set interfaces ethernet eth0 address 2000:0b32:c0e9:1::1/64, and then press Enter. f. Repeat the same commands to configure eth1 using the address shown in the addressing table. g. To accept the configurations you just made, type commit, then type save to save the configuration. h. Next, we will verify that eth0 and eth1 were properly configured on R1. To do this, we must first exit configure mode. Type exit at the prompt. i.   To verify that eth0 and eth1 are correctly configured, type show interfaces at the $ prompt. j.   Notice that both interfaces eth0 and eth1 on R1 are configured with IPv4 and IPv6 addressing (1). Also view the interface descriptions (2). Validate that the settings are correct by referring back to the addressing table. k. Now you will repeat the same steps to configure the interfaces on R2. Review step 16 and use the addressing table to configure IPv4 and IPv6 addressing on R2. Set R2 eth0 description to 'WAN to R1', and R2 eth1 description to 'LAN 2'. When you are finished, type show interfaces to validate.</h3><div class="code"><pre>configure eth0, type set interfaces ethernet eth0 address 192.168.10.1/24, and
+configure addressing since we already configured interface descriptions. Starting</pre></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show interface ethernet eth0</code> with <strong>MTU 9000</strong></div><p class="task-head">Task 3.2 - Verify Network Connectivity</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Click the PC1 console tab to access its console.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> At the PC1&gt; prompt, ping the IPv4 address of PC2. Type ping 192.168.10.3, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Notice that 5 icmp ping packets were sent to and returned from the PC2 IP address of 192.168.10.3.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> From PC1, ping the e0 interface IPv4 address of the R1 router. Pings should all be successful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Now we will verify IPv6 connectivity between devices in LAN 1. At PC1, type ping 2000:0b32:c0e9:1::3 to test connectivity to PC2.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Next, from PC1, ping the LAN 1 default gateway, R1 eth0. Notice that these pings are using icmp6 (icmpv6).</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Now that we have verified connectivity between the LAN 1 devices, repeat the steps for the devices in LAN2. From PC3, ping PC4 and R2 eth1 interface for both IPv4 and IPv6.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Notice that PC3 was able to successfully reach all other LAN 2 devices for both IPv4 and IPV6 (dual-stack).</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Refer to the topology below. PC1 was able to reach PC2 and R1 e0. Similarly, PC3 was able to reach PC4 and R2 e1.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Now we will test connectivity across the network. Let's see if PC1 can reach a device in a. From PC1, ping PC4 by typing ping 172.16.31.3 b. Repeat the test for IPv6. From PC1, type ping 2000:0b32:c0e9:3::3 c. Let's do one more test. This time, ping PC2 from PC3. From the PC3'console, type Notice that all the pings for all tests were unsuccessful. ICMP timeout and unreachable messages were obtained. Communication between LAN 1 and LAN 2 did not work. However, devices in the same LAN can communicate. We will explore the reasons why in part 4.</h3><div class="code"><pre>ping 192.168.10.3</pre></div><div class="call tip"><span class="k">Note</span><p>LAN2. Please refer to the addressing table for the following steps.</p></div></div>
+<p class="task-head">Task 3.3 - Conclusion</p>
+<p class="task-head">Task 4 - The Routing Table</p>
+<p class="task-head">Task 4.1 - Viewing and Understanding the Routing Table</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Navigate back to the R1 console. At the vyos@R1:~$ prompt, type show ip route to view the R1 IPv4 routing table.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Look at the output. The Codes: section (1) displays the different route types that could be learned by R1. Notice the directly connected networks (2). The C&gt;* to the left of the IP addresses indicate that these are directly connected networks/subnets. Notice that the 168.50.80.0/30 and 192.168.10.0/24 are the networks assigned to R1 interfaces, eth0 and eth1. Also notice the timestamps at the end of each directly connected network entry. This represents how long ago that network was added to the routing table. The routing table tells us what networks can be reached. The R1 routing table can be interpreted as: R1 knows how to reach the 168.50.80.0/30 and 192.168.10.0/24 networks. They are directly connected to eth0 and eth1 respectively.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Repeat steps 1 and 2 to view the R2 IPv4 routing table. View the directly connected routes.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Next, we will view the IPv6 routing table on both routers. In the R1 console, type show ipv6 route, and then press Enter. Notice the directly connected IPv6 subnets (1) are visible. The IPv6 link-local addresses (2) have also been dynamically assigned.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Repeat step 4 above for R2.</h3></div>
+<p class="task-head">Task 4.2 - Configure and Verify Static Routes</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the R1 console, type configure to enter configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, type set protocols static route 172.16.31.0/24 next-hop 168.50.80.2, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> The previous command installs a static route in the R1 routing table to the 172.16.31.0/24 network (LAN 2). LAN 2 is reachable through the R2 eth0 IP address of 168.50.80.2 (next- hop). A hop is the next upstream router. Next, type commit, and then save. Type exit to exit configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> To view the R1 IPv4 routing table, type show ip route, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Notice that the static route to 172.16.31.0/24 is now visible in the R1 routing table as: S&gt;* 172.16.31.0/24 [1/0] via 168.50.80.2, eth1, 00:07:13 The S&gt;* represents a static route. 172.16.31.0/24 is the remote destination network (LAN 2). In the [1/0] field, the 1 represents the default administrative distance and the 0 is known as the metric. Both of these values are important. These values in the [A/M] field will change based on types of routes. The via 168.50.80.2 means that the destination network of 172.16.31.0/24 can be reached through the next-hop IP address of 168.50.80.2. eth1 is the exit interface on R1, and 00:07:13 is the elapsed time since that route was learned by R1.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Since our topology is dual-stack, we also need to configure and verify IPv6 static routes between R1 and R2. Starting with R1, type configure to enter configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Next, type the following command:</h3><div class="code"><pre>set protocols static route6 2000:0b32:c0e9:3::/64 next-hop
+2000:0b32:c0e9:2::2</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The last part of the command syntax wraps back to the beginning of the line. Just press Enter when complete.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Next, type commit, and then save. Type exit to exit configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Verify configuration. Type show ipv6 route to view the R1 IPv6 routing table. Notice the IPv6 static route to 2000:0b32:c0e9:3::/64 now exists in the R1 routing table along with the previous routes viewed earlier.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show ip route</code> before and after adding a <strong>static route</strong> (the new <code class="inl">S</code> entry)</div><div class="step"><h3 class="fh"><span class="n">11</span> Repeat section 4.2, steps 1-10 to configure and verify IPv4 and IPv6 static routes on R2 to the R1 LAN (LAN 1). Use the topology and addressing table to validate addresses.</h3><div class="call tip"><span class="k">Note</span><p>Remember that the next hop is the IP address on the opposite routers interface.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> Now that both R1 and R2 routing tables display IPv4 and IPv6 static routes to the remote LANs, let us verify end-to-end connectivity by pinging across the network. Go to the PC1 console and ping PC4. Ping the PC4 IPv4 address. Type ping 172.16.31.3, and then press Enter. Notice that the pings were successful. Since routing is configured, LAN 1 to LAN 2 communication is now possible.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Successful <strong>ping to a remote LAN</strong> across the static route</div><div class="step"><h3 class="fh"><span class="n">13</span> Next, ping PC2 from PC4. From the PC4 console, type ping 192.168.10.3, and then press</h3><div class="call tip"><span class="k">Note</span><p>Enter. Notice that the pings were successful.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> Finally, from the PC1 console, type trace 172.16.31.3, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> Notice that the trace route (trace) started at the default gateway (R1) from PC1, and then to the next hop R2, and then finally to the destination at PC4.</h3></div>
+<p class="task-head">Task 4.3 - Conclusion</p>
+<p class="task-head">Task 5 - Default Routing</p>
+<p class="task-head">Task 5.1 - Configure and Verify Default Routes</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> From the R1 console prompt, type configure to enter configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> To configure an IPv4 static default route, type set protocols static route 0.0.0.0/24 next-hop 168.50.80.2, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> To configure an IPv6 static default route, type set protocols static route6 ::/0 next-hop 2000:0b32:c0e9:2::2, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> The previous commands install an IPv4 and an IPv6 static default route in the R1 routing table to (LAN 2). LAN 2 is reachable through the R2 eth0, which is the next-hop (the next upstream router). Next, type commit, and then save. Type exit to exit configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> View the R1 IPv4 routing table. Type show ip route, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Notice that the IPv4 default route is now displayed in the routing table as: S&gt;* 0.0.0.0/0 [1/0] via 168.50.80.2, eth1, 00:00:17. The 0.0.0.0/0 is called the quad-zero route.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Now, view the R1 IPv6 routing table. Type show ipv6 route, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Notice that the IPv6 default route is now displayed in the routing table as:</h3><div class="call tip"><span class="k">Note</span><p>S&gt;* ::/0 [1/0] via 2000:b32:c0e9:2::2, eth1, 00:01:36. The ::/0 is the IPv6 default route.</p></div></div>
+<p class="task-head">Task 5.2 - Conclusion</p>
+<p class="task-head">Task 6 - Jumbo Frames</p>
+<p class="task-head">Task 6.1 - Configure and Verify Jumbo Frames</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the R1 console, type show interface ethernet eth0.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Notice the MTU setting on eth0 is mtu 1500.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Now we will change the MTU to something higher than 1500 bytes to enable jumbo frames. We will use the MTU value of 9000 bytes. From the R1 console, type configure to enter configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In configuration mode, type set interfaces ethernet eth0 mtu 9000.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Next, type commit, and then save. Type exit to exit configuration mode.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Next, we will verify the configuration by observing the MTU setting on the R1 eth0 interface. Type show interface ethernet eth0.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Notice the MTU setting on eth0 is now mtu 9000. The R1 eth0 interface is now configured to process jumbo frames.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Close the main console window and the GNS3 application.</h3></div>
+<p class="task-head">Task 6.2 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Vyos Configuration Guide</h3><div class="code"><pre>https://docs.vyos.io/en/equuleus/configuration/index.html</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>Routing reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Route code</th><th>Means</th></tr></thead><tbody><tr><td><code class="inl">C</code></td><td>Directly connected (the router's own interface subnet)</td></tr><tr><td><code class="inl">S</code></td><td>Static (manually configured)</td></tr><tr><td><code class="inl">S*</code></td><td>Static default route (gateway of last resort)</td></tr><tr><td><code class="inl">O</code> / <code class="inl">R</code> / <code class="inl">B</code></td><td>OSPF / RIP / BGP (dynamic — next lab)</td></tr></tbody></table></div><dl class='ref'><dt>Next hop</dt><dd>The IP of the neighboring router a packet is handed to on the way to its destination.</dd><dt>Default route</dt><dd><code class="inl">0.0.0.0/0</code> (IPv4) or <code class="inl">::/0</code> (IPv6) — matches any destination not covered by a more specific route.</dd><dt>Administrative distance</dt><dd>A route's trustworthiness ranking when multiple sources offer the same prefix (connected &lt; static &lt; dynamic).</dd><dt>Longest-prefix match</dt><dd>Routers pick the most specific matching route (the longest mask) first.</dd><dt>MTU / jumbo frame</dt><dd>Maximum frame payload; standard is 1500 bytes, jumbo is up to ~9000 — must match end-to-end.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Static route added but far LAN unreachable</td><td>Return route missing on the other router</td><td>Routing must work <em>both ways</em> — add the mirror-image route on R2 back to R1's LAN.</td></tr><tr><td>Route typed but not in table</td><td>Wrong next-hop, or no <code class="inl">commit</code></td><td>Confirm the next-hop is reachable (directly connected) and that you committed.</td></tr><tr><td>Jumbo frames don't help / break pings</td><td>MTU mismatch along the path</td><td>Every device on the path must support the same MTU; a single 1500-byte link fragments or drops jumbo frames.</td></tr><tr><td>Default route ignored</td><td>A more specific route matches first</td><td>That's correct behavior — longest-prefix match wins; the default only catches <em>unmatched</em> traffic.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Read a <strong>routing table</strong> and identify route source codes (C/S/O/etc.).</li><li>Know <strong>static vs default vs dynamic</strong> routing and when each fits.</li><li>Understand <strong>administrative distance</strong> and <strong>longest-prefix match</strong> as tie-breakers.</li><li>Know <strong>MTU / jumbo frames (9000)</strong> and that MTU must be consistent end-to-end.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. You add a static route on R1 to R2's LAN but pings still fail. First thing to check?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The <strong>return path</strong> — R2 needs a route back to R1's LAN. Routing has to be bidirectional.</div></div><div class="q"><p class="ask">2. What does 0.0.0.0/0 represent?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The <strong>default route</strong> — the gateway of last resort for any destination not matched by a more specific route.</div></div><div class="q"><p class="ask">3. Two routes match a destination: /24 and /16. Which wins?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The <strong>/24</strong> — longest-prefix (most specific) match always wins.</div></div><div class="q"><p class="ask">4. Why must jumbo frames be configured end-to-end?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A device with a smaller MTU along the path will fragment or drop the oversized frames, so a single mismatched hop defeats the benefit.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show ip route</code> before and after adding a <strong>static route</strong> (the new <code class="inl">S</code> entry)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">Successful <strong>ping to a remote LAN</strong> across the static route</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><code class="inl">show ip route</code> showing the <strong>default route</strong> (<code class="inl">S*</code>)</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show interface ethernet eth0</code> with <strong>MTU 9000</strong></label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>show ip route</td><td>View IPv4 routing table</td></tr><tr><td>show ipv6 route</td><td>View IPv6 routing table</td></tr><tr><td>set protocols static route A.B.C.D/M next-hop X</td><td>Add a static route</td></tr><tr><td>set protocols static route 0.0.0.0/0 next-hop X</td><td>Add a default route</td></tr><tr><td>set interfaces ethernet ethN mtu 9000</td><td>Enable jumbo frames</td></tr><tr><td>commit ; save</td><td>Apply + persist (VyOS)</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab05.html"><span class="lbl">← Previous lab</span>Lab 05 · Cloud Concepts and Virtualization</a><a class="nx" href="netplus_lab07.html"><span class="lbl">Next lab →</span>Lab 07 · Routing Protocols</a></div>
 </main>
@@ -402,5 +487,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

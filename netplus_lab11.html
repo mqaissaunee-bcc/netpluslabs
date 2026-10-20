@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="11">
@@ -272,7 +277,7 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
   <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>A device configuration represents hours of work and the network's correct behavior. If a device dies or a change breaks something, a <strong>config backup</strong> is what gets you running again fast. This lab uses <strong>TFTP (UDP 69)</strong> — the simplest file-transfer protocol — to back up and restore a router config.</p><p>You configure one VyOS router as a <strong>TFTP server</strong>, back up the config from a <strong>TFTP client</strong> to it, then restore it — the full save-and-recover cycle.</p><div class="call warn"><span class="k">TFTP has no security</span>TFTP has <strong>no authentication and no encryption</strong> — fine inside an isolated lab, but for real backups prefer <strong>SCP/SFTP</strong> (over SSH). Know this distinction for the exam.</div><div class="call tip"><span class="k">config.boot</span>On VyOS the saved configuration file is <code class="inl">config.boot</code>. That's the file you back up and the one the router loads at boot.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>GNS3</strong> with two VyOS routers: one acts as the <strong>TFTP server</strong> (holding a <code class="inl">tftpboot</code> directory), the other as the <strong>TFTP client</strong> sending/receiving its <code class="inl">config.boot</code>.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Configure a router as a TFTP server</p><div class="step"><h3><span class="n">1</span>Enable the TFTP service</h3><div class="code"><pre data-copy="configure
@@ -283,7 +288,33 @@ commit ; save">configure
 set service tftp-server listen-address 168.50.80.2
 set service tftp-server directory /config/tftpboot
 set service tftp-server allow-upload
-commit ; save</pre></div><p>Confirm the service is listening: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show service">show service</pre></div></div><p class="task-head">Back up the config (client → server)</p><div class="step"><h3><span class="n">1</span>Push the running config to the TFTP server</h3><p>From the client router, upload its <code class="inl">config.boot</code> to the server's <code class="inl">tftpboot</code> directory:</p><div class="code"><pre data-copy="tftp -p -l /config/config.boot -r backup 168.50.80.2">tftp -p -l /config/config.boot -r backup 168.50.80.2</pre></div><p>Verify the <code class="inl">backup</code> file now exists on the server. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Restore the config (server → client)</p><div class="step"><h3><span class="n">1</span>Pull the backup back down</h3><div class="code"><pre data-copy="tftp -g -r /config/tftpboot -r backup 168.50.80.2">tftp -g -r /config/tftpboot -r backup 168.50.80.2</pre></div><p>Then load/boot the restored configuration and confirm the device is back to the saved state. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>Backup reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Protocol</th><th>Port</th><th>Security</th><th>Use</th></tr></thead><tbody><tr><td>TFTP</td><td>UDP 69</td><td>None</td><td>Quick config transfers on trusted networks</td></tr><tr><td>FTP</td><td>TCP 20/21</td><td>Cleartext</td><td>File transfer (insecure)</td></tr><tr><td>SFTP</td><td>TCP 22 (SSH)</td><td>Encrypted</td><td>Secure file transfer — preferred</td></tr><tr><td>SCP</td><td>TCP 22 (SSH)</td><td>Encrypted</td><td>Secure copy — preferred for backups</td></tr></tbody></table></div><dl class='ref'><dt>config.boot</dt><dd>VyOS's saved startup configuration file — the thing you back up.</dd><dt>Running vs startup config</dt><dd>Running = active in memory now; startup = what loads at boot. <code class="inl">save</code> writes running to startup.</dd><dt>Why back up</dt><dd>Fast recovery after hardware failure or a bad change; also for auditing and change tracking.</dd><dt>3-2-1 rule</dt><dd>Keep 3 copies, on 2 media types, with 1 off-site — standard backup hygiene.</dd><dt>tftp flags</dt><dd><code class="inl">-p</code> put (upload), <code class="inl">-g</code> get (download), <code class="inl">-l</code> local file, <code class="inl">-r</code> remote file.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Upload fails</td><td><code class="inl">allow-upload</code> not set on the server</td><td>TFTP servers are read-only by default; enable <code class="inl">allow-upload</code> and <code class="inl">commit</code>.</td></tr><tr><td>Transfer times out</td><td>UDP 69 blocked, or wrong server IP</td><td>Confirm the server IP, that TFTP is listening, and that UDP 69 is permitted along the path.</td></tr><tr><td>Wrong file transferred</td><td>Local/remote filenames swapped</td><td><code class="inl">-l</code> is the local file, <code class="inl">-r</code> the remote name; double-check which direction you're transferring.</td></tr><tr><td>Restore didn't change anything</td><td>Downloaded but not loaded</td><td>Downloading the file isn't enough — load/boot the restored config to apply it.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Know <strong>TFTP = UDP 69</strong>, and that it has <strong>no auth/encryption</strong> — contrast with <strong>SFTP/SCP (TCP 22)</strong>.</li><li>Understand <strong>running vs startup config</strong> and why backups matter for recovery.</li><li>Know <strong>configuration backup/restore</strong> as a standard operational procedure (objective 3.1).</li><li>Recognize the <strong>3-2-1 backup rule</strong> as best practice.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Why wouldn't you use TFTP to back up production device configs over the Internet?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">TFTP has <strong>no authentication or encryption</strong> — the config (including secrets) would cross in cleartext. Use <strong>SCP/SFTP</strong> instead.</div></div><div class="q"><p class="ask">2. What's the difference between running and startup config?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Running</strong> is active in memory right now; <strong>startup</strong> is what loads at boot. Saving writes running → startup (on VyOS, <code class="inl">save</code> writes <code class="inl">config.boot</code>).</div></div><div class="q"><p class="ask">3. Your TFTP upload is refused. Most likely config setting?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><code class="inl">allow-upload</code> isn't enabled — TFTP servers are read-only unless you permit uploads.</div></div><div class="q"><p class="ask">4. State the 3-2-1 backup rule.</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>3</strong> copies of the data, on <strong>2</strong> different media types, with <strong>1</strong> copy stored off-site.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show service</code> confirming the <strong>TFTP server</strong> is listening with <code class="inl">allow-upload</code></label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">A successful <strong>backup upload</strong> and the <code class="inl">backup</code> file present on the server</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">A successful <strong>restore download</strong> of the config to the client</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">The client running the <strong>restored configuration</strong></label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>TFTP</td><td>UDP 69 — no security</td></tr><tr><td>SFTP/SCP</td><td>TCP 22 — encrypted (preferred)</td></tr><tr><td>set service tftp-server …</td><td>Enable VyOS TFTP server</td></tr><tr><td>tftp -p -l FILE -r NAME SERVER</td><td>Upload (backup)</td></tr><tr><td>tftp -g -r NAME SERVER</td><td>Download (restore)</td></tr><tr><td>config.boot</td><td>VyOS saved config file</td></tr><tr><td>save</td><td>Running → startup config</td></tr></table></section>
+commit ; save</pre></div><p>Confirm the service is listening: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show service">show service</pre></div></div><p class="task-head">Back up the config (client → server)</p><div class="step"><h3><span class="n">1</span>Push the running config to the TFTP server</h3><p>From the client router, upload its <code class="inl">config.boot</code> to the server's <code class="inl">tftpboot</code> directory:</p><div class="code"><pre data-copy="tftp -p -l /config/config.boot -r backup 168.50.80.2">tftp -p -l /config/config.boot -r backup 168.50.80.2</pre></div><p>Verify the <code class="inl">backup</code> file now exists on the server. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Restore the config (server → client)</p><div class="step"><h3><span class="n">1</span>Pull the backup back down</h3><div class="code"><pre data-copy="tftp -g -r /config/tftpboot -r backup 168.50.80.2">tftp -g -r /config/tftpboot -r backup 168.50.80.2</pre></div><p>Then load/boot the restored configuration and confirm the device is back to the saved state. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology and Addressing Tables</p>
+<p class="task-head">Task 2 - TFTP Server Configuration</p>
+<p class="task-head">Task 2.1 - Configure a Router as a TFTP Server</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the login screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> On the Windows desktop, double-click the Lab Files folder to open it.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the Lab Files folder, double-click the Lab 11 GNS3 Portable Project File to open.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The Project window opens with Lab 11 in the Name field. Click OK to open Lab 11.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> It will take about 1 minute for Lab 11 to load. You will see the Please wait screen displaying the progress.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The Lab 11 GNS3 network topology is now visible, and matches the network device backup and restore topology.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> A successful <strong>restore download</strong> of the config to the client</div><div class="step"><h3 class="fh"><span class="n">9</span> Next, we need to start the devices in the network. In this lab, we will only need R1 and R2. On the topology, right-click R2, and then click the green Start arrow. Repeat these steps for R1.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> The connections between R1 and R2 are now green indicating they have started. The network is now ready for configuration. In this topology, R1 will be configured as the TFTP server, and R2 will be used as a TFTP client. First, you will console into the TFTP server</h3><div class="call tip"><span class="k">Note</span><p>R2, and verify connectivity with R1, the TFTP client. Next, you will configure the TFTP server. Refer to the topology and addressing table to complete the following steps.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Console into R2. a. Right-click R2, and then click the Console icon. b. The R2 solarwinds console window opens. Press Enter to access the login prompt. Type vyos at the R1 login: prompt, and then press Enter. When prompted for a password, type vyos. You are now logged into R2. c. Next, you will verify IPv4 and IPv6 connectivity between the TFTP server and client. From the R2'console, type ping 168.50.80.1, and then press Enter. After 5 ICMP replies have been received, press CTRL + C to stop the pings. Notice that 5 packets were transmitted and received, indicating successful connectivity between the server and client. d. Repeat step c above for IPv6 connectivity. From the R2 console, type ping 2000:b32:c0e9:2::1, and then press Enter. After 5 ICMP replies have been received, press CTRL + C to stop the pings. Notice that the same number of packets were transmitted and received, indicating successful connectivity between the server and client.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> Next, we will configure R2 as a TFTP server and verify the configuration. From the R2 console, enter the following commands, and press Enter after each step: a. vyos@R2:~$ configure (enter configuration mode) b. vyos@R2:~# set service tftp-server directory /config/tftpboot (enable TFTP service and specify the directory where files will be backed up to and c. vyos@R2:~# set service tftp-server listen-address 168.50.80.2 (configure the IPv4 address of the TFTP server on which it will listen for TFTP d. vyos@R2:~# set service tftp-server listen-address 2000:b32:c0e9:2::2 (configure the IPv6 address of the TFTP server on which it will listen for TFTP requests) e. vyos@R2:~# set service tftp-server allow-upload (enable uploads to the f. vyos@R2:~# show service (verify configuration as entered) g. vyos@R2:~# commit (execute this configuration) h. vyos@R2:~# save (saves this configuration in the /config/config.boot directory)</h3><div class="code"><pre>restored from)
+requests)
+TFTP server)</pre></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> The client running the <strong>restored configuration</strong></div><div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show service</code> confirming the <strong>TFTP server</strong> is listening with <code class="inl">allow-upload</code></div><p class="task-head">Task 2.2 - Backup and Verify Configuration File from TFTP Client to TFTP Server</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> On the topology, right-click R1, and then click Console to access the vyos@R1:~$ prompt.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> The R1 solarwinds console window opens. Press Enter to access the login prompt. Type vyos at the R1 login: prompt, and then press Enter. When prompted for a password, type vyos. You are now logged into R1.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> At the vyos@R1:~$ prompt, type: tftp -p -l /config/config.boot -r backup 168.50.80.2, and then press Enter. This command will back up the configuration file config.boot to the TFTP server at 168.50.80.2. Notice the backup was 100%.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> A successful <strong>backup upload</strong> and the <code class="inl">backup</code> file present on the server</div><div class="step"><h3 class="fh"><span class="n">4</span> To verify that the file was correctly backed up to the TFTP server, navigate back to the TFTP server, R2, and type the following: ls /config/tftpboot/, and then press Enter. This command lists the contents of the config/tftpboot directory in R2, which contains the saved configuration file named backup.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> To see more details of this file transfer from R1 to R2, type: ls -l /config/tftpboot/ and then press Enter. This command displays the contents of R2's config/tftpboot directory in a long list format. Notice the output lists the file permission, group name, created/ modified date and time, and the file name.</h3></div>
+<p class="task-head">Task 2.3 - Restore and Verify Configuration File from TFTP Server to TFTP Client</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> At the vyos@R1:~$ prompt, type: tftp -g -r /config/tftpboot -r backup 168.50.80.2, and then press Enter. This command will restore (get) the backup configuration from the TFTP server /config/tftpboot directory located at 168.50.80.2. Notice the backup was 100%.</h3></div>
+<p class="task-head">Task 2.4 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Vyos Configuration Guide</h3><div class="code"><pre>https://docs.vyos.io/en/equuleus/configuration/index.html</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>Backup reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Protocol</th><th>Port</th><th>Security</th><th>Use</th></tr></thead><tbody><tr><td>TFTP</td><td>UDP 69</td><td>None</td><td>Quick config transfers on trusted networks</td></tr><tr><td>FTP</td><td>TCP 20/21</td><td>Cleartext</td><td>File transfer (insecure)</td></tr><tr><td>SFTP</td><td>TCP 22 (SSH)</td><td>Encrypted</td><td>Secure file transfer — preferred</td></tr><tr><td>SCP</td><td>TCP 22 (SSH)</td><td>Encrypted</td><td>Secure copy — preferred for backups</td></tr></tbody></table></div><dl class='ref'><dt>config.boot</dt><dd>VyOS's saved startup configuration file — the thing you back up.</dd><dt>Running vs startup config</dt><dd>Running = active in memory now; startup = what loads at boot. <code class="inl">save</code> writes running to startup.</dd><dt>Why back up</dt><dd>Fast recovery after hardware failure or a bad change; also for auditing and change tracking.</dd><dt>3-2-1 rule</dt><dd>Keep 3 copies, on 2 media types, with 1 off-site — standard backup hygiene.</dd><dt>tftp flags</dt><dd><code class="inl">-p</code> put (upload), <code class="inl">-g</code> get (download), <code class="inl">-l</code> local file, <code class="inl">-r</code> remote file.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Upload fails</td><td><code class="inl">allow-upload</code> not set on the server</td><td>TFTP servers are read-only by default; enable <code class="inl">allow-upload</code> and <code class="inl">commit</code>.</td></tr><tr><td>Transfer times out</td><td>UDP 69 blocked, or wrong server IP</td><td>Confirm the server IP, that TFTP is listening, and that UDP 69 is permitted along the path.</td></tr><tr><td>Wrong file transferred</td><td>Local/remote filenames swapped</td><td><code class="inl">-l</code> is the local file, <code class="inl">-r</code> the remote name; double-check which direction you're transferring.</td></tr><tr><td>Restore didn't change anything</td><td>Downloaded but not loaded</td><td>Downloading the file isn't enough — load/boot the restored config to apply it.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Know <strong>TFTP = UDP 69</strong>, and that it has <strong>no auth/encryption</strong> — contrast with <strong>SFTP/SCP (TCP 22)</strong>.</li><li>Understand <strong>running vs startup config</strong> and why backups matter for recovery.</li><li>Know <strong>configuration backup/restore</strong> as a standard operational procedure (objective 3.1).</li><li>Recognize the <strong>3-2-1 backup rule</strong> as best practice.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Why wouldn't you use TFTP to back up production device configs over the Internet?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">TFTP has <strong>no authentication or encryption</strong> — the config (including secrets) would cross in cleartext. Use <strong>SCP/SFTP</strong> instead.</div></div><div class="q"><p class="ask">2. What's the difference between running and startup config?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Running</strong> is active in memory right now; <strong>startup</strong> is what loads at boot. Saving writes running → startup (on VyOS, <code class="inl">save</code> writes <code class="inl">config.boot</code>).</div></div><div class="q"><p class="ask">3. Your TFTP upload is refused. Most likely config setting?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><code class="inl">allow-upload</code> isn't enabled — TFTP servers are read-only unless you permit uploads.</div></div><div class="q"><p class="ask">4. State the 3-2-1 backup rule.</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>3</strong> copies of the data, on <strong>2</strong> different media types, with <strong>1</strong> copy stored off-site.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show service</code> confirming the <strong>TFTP server</strong> is listening with <code class="inl">allow-upload</code></label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">A successful <strong>backup upload</strong> and the <code class="inl">backup</code> file present on the server</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">A successful <strong>restore download</strong> of the config to the client</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">The client running the <strong>restored configuration</strong></label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>TFTP</td><td>UDP 69 — no security</td></tr><tr><td>SFTP/SCP</td><td>TCP 22 — encrypted (preferred)</td></tr><tr><td>set service tftp-server …</td><td>Enable VyOS TFTP server</td></tr><tr><td>tftp -p -l FILE -r NAME SERVER</td><td>Upload (backup)</td></tr><tr><td>tftp -g -r NAME SERVER</td><td>Download (restore)</td></tr><tr><td>config.boot</td><td>VyOS saved config file</td></tr><tr><td>save</td><td>Running → startup config</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab10.html"><span class="lbl">← Previous lab</span>Lab 10 · Network Availability</a><a class="nx" href="netplus_lab12.html"><span class="lbl">Next lab →</span>Lab 12 · Remote Access Methods</a></div>
 </main>
@@ -390,5 +421,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

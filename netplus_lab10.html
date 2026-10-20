@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="10">
@@ -272,10 +277,106 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
-  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>You can't manage what you can't see or correlate. This lab sets up the three services that make a network <strong>observable and maintainable</strong>:</p><ul><li><strong>NTP (UDP 123)</strong> — synchronizes clocks across devices so logs and events line up. Without synced time, correlating an incident across devices is nearly impossible.</li><li><strong>SNMP (UDP 161, traps 162)</strong> — lets a monitoring station (NMS) query device health and receive alerts. You configure pfSense as an SNMP agent and poll it from Windows.</li><li><strong>Syslog (UDP 514)</strong> — ships log messages to a central server so records survive even if a device fails, and all logs live in one searchable place.</li></ul><div class="call tip"><span class="k">Why these three go together</span>NTP makes timestamps trustworthy, SNMP tells you <em>how devices are doing</em>, and syslog keeps the <em>record of what happened</em>. Together they're the backbone of network operations.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>pfSense</strong> acts as the NTP server and SNMP agent. <strong>WinOS</strong> is the NTP client, the SNMP manager (NMS), and the syslog server you set up and query.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Network Time Protocol (NTP)</p><div class="step"><h3><span class="n">1</span>Configure pfSense as the NTP server</h3><p>Enable the NTP service on pfSense so clients can sync to it. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Point a Windows client at it and verify</h3><p>Configure WinOS to use the pfSense NTP server, then confirm synchronization from a command prompt with the <code class="inl">w32tm</code> tool: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="w32tm /query /peers">w32tm /query /peers</pre></div><div class="code"><pre data-copy="w32tm /resync">w32tm /resync</pre></div></div><p class="task-head">Simple Network Management Protocol (SNMP)</p><div class="step"><h3><span class="n">1</span>Enable the SNMP agent on pfSense</h3><p>Turn on the SNMP daemon on pfSense and set a <strong>community string</strong> (the SNMP v1/v2c 'password'). This makes pfSense queryable. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Poll it from an SNMP manager in Windows</h3><p>Use the SNMP manager (NMS) on WinOS to run an <strong>SNMP GET</strong> against pfSense and read values (uptime, interface stats, etc.). Confirm pfSense appears as a managed agent. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Syslog</p><div class="step"><h3><span class="n">1</span>Configure a device as a syslog forwarder</h3><p>Point a device's logging at the central syslog server's IP (UDP 514). <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Set up and use the syslog server</h3><p>Run a syslog server on WinOS, generate some log events, and confirm the messages arrive centrally — timestamped consistently thanks to NTP. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>Monitoring reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Service</th><th>Port</th><th>Role</th></tr></thead><tbody><tr><td>NTP</td><td>UDP 123</td><td>Clock synchronization</td></tr><tr><td>SNMP (poll/GET)</td><td>UDP 161</td><td>Manager queries agent for data</td></tr><tr><td>SNMP trap</td><td>UDP 162</td><td>Agent pushes an alert to the manager</td></tr><tr><td>Syslog</td><td>UDP 514</td><td>Devices forward log messages to a central server</td></tr></tbody></table></div><dl class='ref'><dt>NMS</dt><dd>Network Management Station — the monitoring server that polls SNMP agents and collects traps.</dd><dt>SNMP community string</dt><dd>A shared secret in SNMP v1/v2c; <strong>SNMPv3 adds real auth and encryption</strong> and is preferred.</dd><dt>MIB / OID</dt><dd>The structured catalog (MIB) of values an agent exposes, each identified by an OID.</dd><dt>Syslog severity</dt><dd>Levels 0 (Emergency) to 7 (Debug) that rank log message importance.</dd><dt>Why centralize logs</dt><dd>So records survive a device failure and can be searched/correlated in one place (a SIEM extends this).</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Client won't sync time</td><td>NTP blocked (UDP 123) or server not reachable</td><td>Confirm the NTP service is up on pfSense and UDP 123 is permitted; <code class="inl">w32tm /resync</code>.</td></tr><tr><td>SNMP GET returns nothing</td><td>Wrong community string or SNMP not enabled</td><td>Match the community string exactly and confirm the SNMP daemon is running on the agent.</td></tr><tr><td>No logs on the syslog server</td><td>Forwarder pointed at wrong IP, or UDP 514 blocked</td><td>Set the correct server IP on the device and allow UDP 514; confirm the server is listening.</td></tr><tr><td>Timestamps don't line up</td><td>Devices not NTP-synced</td><td>Fix NTP first — log correlation depends on synchronized clocks.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Memorize the ports: <strong>NTP 123, SNMP 161, SNMP trap 162, Syslog 514</strong> (all UDP).</li><li>Know <strong>SNMP poll (GET) vs trap</strong>, and that <strong>SNMPv3</strong> adds authentication/encryption.</li><li>Understand <strong>syslog severity levels</strong> and why <strong>centralized logging</strong> matters.</li><li>Know <strong>NTP's role</strong> in making logs/events correlatable — objective 3.2 monitoring.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. An SNMP agent pushes an unsolicited alert to the NMS. Poll or trap, and what port?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A <strong>trap</strong>, on <strong>UDP 162</strong>. (Polling/GET uses UDP 161.)</div></div><div class="q"><p class="ask">2. Why is NTP a prerequisite for useful logging?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Without synchronized clocks, timestamps across devices don't line up, making incident correlation unreliable.</div></div><div class="q"><p class="ask">3. What's the security problem with SNMP v2c, and the fix?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Its <strong>community string is sent in cleartext</strong> with no encryption. <strong>SNMPv3</strong> adds authentication and encryption.</div></div><div class="q"><p class="ask">4. Where do syslog messages go in this lab, and on what port?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">To a <strong>central syslog server</strong> on <strong>UDP 514</strong>, so logs are retained and searchable in one place.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">pfSense NTP server enabled + <code class="inl">w32tm /query /peers</code> showing the client synced</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">SNMP enabled on pfSense (community string set) and a successful <strong>SNMP GET</strong> from the NMS</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">Device configured to <strong>forward syslog</strong> to the server</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">The <strong>syslog server</strong> showing received messages</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>NTP</td><td>UDP 123 — time sync</td></tr><tr><td>SNMP GET</td><td>UDP 161 — poll device</td></tr><tr><td>SNMP trap</td><td>UDP 162 — device alert</td></tr><tr><td>Syslog</td><td>UDP 514 — central logging</td></tr><tr><td>w32tm /query /peers</td><td>Win: check NTP source</td></tr><tr><td>w32tm /resync</td><td>Win: force time resync</td></tr><tr><td>SNMPv3</td><td>Use for auth + encryption</td></tr></table></section>
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>You can't manage what you can't see or correlate. This lab sets up the three services that make a network <strong>observable and maintainable</strong>:</p><ul><li><strong>NTP (UDP 123)</strong> — synchronizes clocks across devices so logs and events line up. Without synced time, correlating an incident across devices is nearly impossible.</li><li><strong>SNMP (UDP 161, traps 162)</strong> — lets a monitoring station (NMS) query device health and receive alerts. You configure pfSense as an SNMP agent and poll it from Windows.</li><li><strong>Syslog (UDP 514)</strong> — ships log messages to a central server so records survive even if a device fails, and all logs live in one searchable place.</li></ul><div class="call tip"><span class="k">Why these three go together</span>NTP makes timestamps trustworthy, SNMP tells you <em>how devices are doing</em>, and syslog keeps the <em>record of what happened</em>. Together they're the backbone of network operations.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>pfSense</strong> acts as the NTP server and SNMP agent. <strong>WinOS</strong> is the NTP client, the SNMP manager (NMS), and the syslog server you set up and query.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Network Time Protocol (NTP)</p><div class="step"><h3><span class="n">1</span>Configure pfSense as the NTP server</h3><p>Enable the NTP service on pfSense so clients can sync to it. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Point a Windows client at it and verify</h3><p>Configure WinOS to use the pfSense NTP server, then confirm synchronization from a command prompt with the <code class="inl">w32tm</code> tool: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="w32tm /query /peers">w32tm /query /peers</pre></div><div class="code"><pre data-copy="w32tm /resync">w32tm /resync</pre></div></div><p class="task-head">Simple Network Management Protocol (SNMP)</p><div class="step"><h3><span class="n">1</span>Enable the SNMP agent on pfSense</h3><p>Turn on the SNMP daemon on pfSense and set a <strong>community string</strong> (the SNMP v1/v2c 'password'). This makes pfSense queryable. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Poll it from an SNMP manager in Windows</h3><p>Use the SNMP manager (NMS) on WinOS to run an <strong>SNMP GET</strong> against pfSense and read values (uptime, interface stats, etc.). Confirm pfSense appears as a managed agent. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Syslog</p><div class="step"><h3><span class="n">1</span>Configure a device as a syslog forwarder</h3><p>Point a device's logging at the central syslog server's IP (UDP 514). <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Set up and use the syslog server</h3><p>Run a syslog server on WinOS, generate some log events, and confirm the messages arrive centrally — timestamped consistently thanks to NTP. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology &amp; Addressing Table</p>
+<p class="task-head">Task 2 - Network Time Protocol</p>
+<div class="step"><h3 class="fh"><span class="n">2</span> Stratum 3 receives it time from Stratum 2, and so forth. As you see, there is a hierarchy of time servers and the closer you are to Stratum 0, the more accurate the time. NTP synchronizes computer clocks using Coordinated Universal Time (UTC) for greater precision and accuracy. You will be using the network availability topology diagram as well as the IP addressing table to complete these steps: • Configure pfSense as an NTP Server • Test and verify NTP synchronization on a host device</h3></div>
+<p class="task-head">Task 2.1 - Configure the Firewall as the NTP Server</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the login screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the WinOS machine, click Start, and then click the Google Chrome browser icon to open.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the browser tab, type the IP address 192.168.1.254, the IP address of pfSense, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The pfSense GUI opens. Sign in to the pfSense machine using the following credentials:</h3><div class="code"><pre>Username: admin Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> The pfSense Status / Dashboard opens.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> On the top toolbar, click the Services icon, and then click NTP.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> The Service/ NTP /Settings window opens. Under NTP Server Configuration, click the Enable NTP Server box to enable it. For Interface, select LAN. In the Time Servers text box, type pfsense.local.com. This will be the name of the NTP server. Next, click the Prefer checkbox to select it.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Scroll down to the Logging section. If not already selected, check both boxes for Log peer messages and Log system messages. Next, click the blue Save button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> The changes have been applied successfully message appears.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> Next, click the System icon in the top toolbar, and then click General Setup.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> Verify the following settings on this page. The settings should match. Modify if necessary. • Hostname pfSense • DNS Resolution Behavior Use local DNS (127.0.0.1), fall back to remote DNS When you have validated that the information is correct, scroll down to the bottom of the page, and click Save.</h3><div class="code"><pre>• Domain local.com
+Servers
+• Timezone US/Eastern
+• Timeservers pfsense.local.com</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> The changes have been applied successfully message appears.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> Next, we will check the current clock settings on the NTP server. Click the pfSense logo on the upper left toolbar to load the Status / Dashboard.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">16</span> The Status / Dashboard is displayed. View the Current date/time under System Information.</h3><div class="call tip"><span class="k">Note</span><p>Notice the current date, time, and time zone are displayed.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">17</span> To verify the status of the NTP service, click the Status icon on the toolbar, and then click NTP.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">18</span> The Status / NTP window opens. Under Network Time Protocol Status, notice, the Server is pfsense.local.com (1) and the Stratum is 16 (2). Other NTP parameters (3) are also displayed.</h3></div>
+<p class="task-head">Task 2.2 - Configure and Verify NTP on a Windows Client</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> In the WinOS search box, type Control Panel, and then click the Control Panel App icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> In the Adjust your computer's setting window, click the Date and Time icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> In the Date and Time window, click the Internet Time tab.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Next, click Change settings…</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the Internet Time Settings window, click the dropdown arrow and select pfsense.local.com, the NTP server we configured previously. Ensure that the box for</h3><div class="call tip"><span class="k">Note</span><p>Synchronize with an Internet time server is checked.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Next, click Update Now.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> After a few seconds, the WinOS NTP client successfully synchronizes with the pfSense NTP server. It is normal for the sync to fail the first time and produce a timeout error. If this happens, wait a few seconds and click the Update Now button again.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The message The clock was successfully synchronized with pfSense.local.com on 11/9/2023 at 11:13PM is displayed. Click the OK button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> The Date and Time window now displays This computer is set to automatically synchronize with pfSense.local.com (1). Next synchronization: 11/9/2023 at 11:36PM (2). And The clock was successfully synchronized with pfSense.local.com on 11/9/2023 at 11:19 PM (3). Click</h3><div class="call tip"><span class="k">Note</span><p>OK, and then close the Control Panel window. Note that the time and date output from steps 8 and 9 will be the current date and time.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Another way to verify that this NTP client is synchronized to an NTP server is to right-click the clock icon on the bottom right taskbar, and then click Adjust date/time.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Under Date &amp; Time, Synchronize your clock, notice the Last successful time synchronization and Time server: pfSense.local.com.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> Click the Sync now button. Notice that the sync was successful as indicated by the check mark next to Sync now. Windows has a built-in .exe tool that can be used to configure, monitor, and troubleshoot the Windows Time service. In the next steps, you will use the w32tm tool from command- line to display WinOS time service information.</h3><div class="call tip"><span class="k">Note</span><p>WinOS (NTP Client) was able to successfully update its clock from pfSense (NTP Server).</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> SNMP enabled on pfSense (community string set) and a successful <strong>SNMP GET</strong> from the NMS</div><div class="step"><h3 class="fh"><span class="n">13</span> In the WinOS search box, type cmd, and then click the Command Prompt App icon to open.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> At the command prompt, to display this computer's time zone settings, type w32tm /tz andthen press Enter. Notice the Eastern Standard and Daylight Time zones are displayed.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> To display a list of all NTP peers, type w32tm /query /peers, and then press Enter.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> pfSense NTP server enabled + <code class="inl">w32tm /query /peers</code> showing the client synced</div><p class="task-head">Task 2.3 - Conclusion</p>
+<p class="task-head">Task 3 - Simple Network Management Protocol (SNMP)</p>
+<p class="task-head">Task 3.1 - Configure and Verify SNMP on the Firewall</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Click the pfSense logo on the upper left toolbar to load the Status /Dashboard.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> From the top toolbar, click the Services icon, and then click SNMP.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> The Service/ SNMP window opens. Under SNMP Daemon, click the box for Enable the page. When complete, click Save. • Polling Port 161 • System Location Netlab • System Contact Admin • Read Community String pfSense123 • SNMP Modules Select all checkboxes • Internet Protocol IPv4+IPv6 • Bind Interfaces LAN</h3><div class="code"><pre>SNMP Daemon and its controls box to enable. Configure the following settings on this</pre></div></div>
+<p class="task-head">Task 3.2 - Configure and Use an SNMP Manager in Windows</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> We will start with the GUI-based manager. This app allows you to query and monitor the value of SNMP agent variables, monitor traps, ping network hosts, and configure alerts with optional email notifications. From the WinOS Desktop, double-click the PowerSNMP Free Manager icon to launch.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> The PowerSNMP Free Manager window opens. Click OK to close the Manager Listener Error.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Notice that there are five panels. Panel 1 displays the list of network devices and SNMP agents (1). Panel 2 will display the device addresses, variable IDs, and their values (2). Panel 3 displays the OID hierarchy (3). Panel 4 displays the current OID and is parameters (4), and panel 5 is used to display traps and log files (5). All panels can be adjusted in size to suit your desired view.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> First, you will use the manager to discover network devices. The topology below displays three devices: WinOS, GNS3, and pfSense, as well as their IPv4 addresses.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the PowerSNMP Free manager, click Discover in the top menu, and then click Network Devices.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> In the Discover Network Devices window, select Range, then type in 192.168.1.20 to 192.168.1.254, then click Ping. It will take about two minutes for the manager to discover the three devices on this LAN.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Notice that each device is discovered one at a time starting with 192.168.1.20 (WinOS), followed by 192.168.1.100 (GNS3), and then by 192.168.1.254 (pfSense). This will take about a minute. Click each box next to each IP address, and then click OK.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The three IP addresses are now listed under Network Devices in panel 1. Although WinOS is the SNMP Network Management Station (NMS), it is also a device on the same LAN. It is best practice to configure watches in an SNMP manager to monitor devices. Using PowerSNMP, three watch types can be configured. They are variable, trap, and ping watches. In the next step, you will first configure a ping watch that is used to verify reachability of SNMP managed devices or agents. For the next steps, GNS3 and pfSense will be managed devices, and pfSense will also be an SNMP agent.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Remember that managed devices are any device on network that needs to be monitored. Click</h3><div class="call tip"><span class="k">Note</span><p>Watch in the top menu, and then click Add Ping Watch.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> In the Add Ping Watch window, select 192.168.1.100 from the Address dropdown. Leave the other fields as is, and then click Add.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Notice that 192.168.1.100 is now listed in panel 2 under Ping Watches. Repeat steps 9 through 11 to add a ping watch for pfSense at 192.168.1.254. Notice that the Update Interval (sec): defaults to 30 seconds. This means that every 30 seconds the NMS will ping that device for reachability. This value can be modified using the up/down arrows.</h3><div class="call tip"><span class="k">Note</span><p>Both IP addresses for the managed devices are now under a ping watch.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> Next you will add an SNMP agent to the NMS. In panel 1 of the SNMP manager, right-click</h3><div class="call tip"><span class="k">Note</span><p>SNMP Agents, and then click Add Agent.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> The Add SNMP Agents window appears. Click the Add Agent icon on the bottom left of the window.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> In the Agent Configuration window, for Address, type 192.168.1.254. Leave the Port at 161. For Version, select the radial button for 2. In the Community: field, type pfSense123 as the community string. Next click OK.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">15</span> The Add SNMP Agents window now displays pfSense as an SNMP Agent. The Address,</h3><div class="call tip"><span class="k">Note</span><p>Name, and Description are displayed. Click OK.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">16</span> The IP address of 192.168.1.254 is now listed under SNMP Agents in panel 1. In the next steps, you are going to add variable watches to the SNMP agent. Remember the OID is a series of numbers used to uniquely identify managed devices and their statuses. They represent specific information of a managed device, and will be a list of numbers separated by a dot.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">17</span> Click Watch in the top menu, and then click Add Variable Watch.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">18</span> In the Add Variable Watch window, the Agent, Variable IID, Variable Name: and Update</h3><div class="call tip"><span class="k">Note</span><p>Interval fields are pre-populated. Click Add to create this variable watch.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">19</span> Panel 2 now displays variable and ping watches. Under Device Address for Variable Under Variable/IID, the Object ID (OID) (1.3.6.1.2.1.1.1.0) and description sysDescr (2) are displayed. The Value (3) is the full description of the OID numbers from the MIB. Also notice the two previously configured ping watches (4). In the previous steps, the variable watch configured is to provide a sysDescr (2), (system description) to the SNMP manager every 30 seconds. This message is listed in the Value (3) field. This message is identified by OID 1.3.6.1.2.1.1.1.0. The PowerSNMP manager configurations are displayed. To understand OIDs a little better, look at panel 3 expanded. This displays the OID hierarchy. From the top of the list, look at the numbers and descriptions, and then navigate your way down the list. The order is: • 1 iso • 3 org • 6 dod • 1 internet • 1 directory • 2 mgmt • 1 mib • 1 system • 1 sysDescr • 0 end Write the numbers out across separated by a period. 1.3.6.1.1.2.1.1.1.0 is the OID for the sysDescr message of: Panel 4 displays more information about the selected OID such as the Name, OID, and full Description.</h3><div class="call tip"><span class="k">Note</span><p>Watches, notice the socket (IP address and port number pair) of 192.168.1.254:161 (1).</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">20</span> Next, you will add another variable watch to the SNMP agent, but this time using a different</h3><div class="call tip"><span class="k">Note</span><p>OID. Click Watch in the top menu, and then click Add Variable Watch.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">21</span> In the Add Variable Watch window, change the Variable IID to 1.3.6.1.2.1.1.6.0. Leave the other fields as is, and then click Add. Notice the Variable Name: changed to sysLocation.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">22</span> Notice the new variable watch is displayed. The variable/IID is sysLocation (1.3.6.1.2.1.1.6.0), and the value is Netlab. This is the location of the managed device.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">23</span> Close the SNMP free manager. You have just explored some of the features and tools in the GUI-based PowerSNMP free manager. Next you will use SNMPwalk from the SNMP manager command-line. SNMPwalk is an application that repeatedly sends out GetNextRequest to collect information about different OIDs. This lets a user collect information from multiple devices by executing many SNMP commands. Using this tool, you can obtain the complete list of devices in your network that support SNMP, and create a library of MIBs.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">24</span> Open a command prompt on WinOS. In the WinOS search box, type cmd, and then click the</h3><div class="call tip"><span class="k">Note</span><p>Command Prompt App icon to open.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">25</span> Type snmpwalk, and then press Enter. This displays the usage and options available.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">26</span> To list all the OIDs on the network for SNMPv2c using the community string of pfSense123 for the managed device at 192.168.1.254 (pfSense), type: snmpwalk -v 2c -c pfSense123 192.168.1.254, and then press Enter. This command generates a lengthy output.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">27</span> Once you have the OIDs list, you can use an alternative command to filter and search for specific OIDs. Type snmpwalk -v 2c -c pfSense123 192.168.1.254 iso.3.6.1.2.1.1.6.0, and then press Enter. This OID displays the sysLocation of Netlab.</h3></div>
+<p class="task-head">Task 3.3 - Conclusion</p>
+<p class="task-head">Task 4 - Syslog</p>
+<p class="task-head">Task 4.1 - Configure a Device as a Syslog Forwarder</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Navigate back to the pfSense firewall. On the top toolbar, click the Status icon, and then click System Logs.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Click Settings.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> In the General Logging Options section, click the dropdown for Log Message Format and change to syslog (RFC 5424). Leave all other fields to their default values.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Scroll down to the last section for Remote Logging Options. Click the checkbox next to Send log messages to remote syslog server. The Remote Logging Options window opens. For the Source Address dropdown, select LAN. For the IP Protocol dropdown, select IPv4. In the Remote log servers section, type 192.168.1.20:514 as the IP[:port] socket. Note that syslog uses port 514. In the Remote Syslog Contents section, check the Everything box. This will allow all listed events to be forwarded to the syslog server. Next, click Save.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> The changes have been applied successfully message appears. The pfSense firewall has been successfully configured.</h3></div>
+<p class="task-head">Task 4.2 - Setup and Use a Syslog Server</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Navigate to the WinOS Desktop, and then double-click the Kiwi Syslog Server Console icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> The Kiwi Syslog Service Manager opens. Click OK to close the Syslog message.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Next, we must set up the server to be able to receive information from the forwarder (pfSense).</h3><div class="call tip"><span class="k">Note</span><p>From the top menu, click File, and then click Setup.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the Kiwi Syslog Server Setup window, scroll down in the left panel and click inputs. The input options (1) now appear in the right panel. In the address field next to the Add button, enter the 192.168.1.254 appears in the white space labeled Receive messages from below IP Addresses (2). Next, click the Apply button, and then click OK to close.</h3><div class="code"><pre>IP address of 192.168.1.254, and then click the Add button. Notice the IP address</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Let the server run for a few minutes to collect and display syslog messages. The syslog server will start to collect log messages from the pfSense firewall at 192.168.1.254. You can resize the window to your desired viewing. Since PfSense is stable, not many events are being logged. However, if an event is triggered on PfSense that is monitored, syslog messages would be sent to the syslog server. Syslog messages will continue to be received until the server is stopped. The Date and Time (1) fields form the timestamp. This represents the exact time messages were received. The Priority (2) is a combination of two variables: a facility code and a severity code. The facility code represents the type of system (device) that generated the message. The severity code represents the importance of the message as a numerical value from 0 to 7, where 0 is the most severe to 7 being the least severe. The hostname (3) is the IP address of the syslog forwarder device. Notice that all the hostname addresses are the same 192.168.1.254 (3). The message (4) field displays the actual message and parameters. Severity codes are categorized using numbers. The table below displays the codes and their descriptions: Let's now look at some syslog statistics. Most syslog applications display statistics using charts and graphs for easy analysis.</h3><div class="call tip"><span class="k">Note</span><p>Let's explore some syslog messages in a bit more detail from the example below.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> The <strong>syslog server</strong> showing received messages</div><div class="shotmark">📸 <b>Screenshot for your report:</b> Device configured to <strong>forward syslog</strong> to the server</div><div class="step"><h3 class="fh"><span class="n">6</span> From the Kiwi Syslog Service Manager top menu, click View, and then click View Syslog Statistics.</h3><div class="call tip"><span class="k">Note</span><p>The Syslog Statistics window opens and displays the history graph for events over the last hour. Note that these statistics will look different the longer syslog is running.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> You can also view events over the last 24 hours. Click the History (24hr) tab.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> To view the severity level of received messages, click the Severity tab. Notice the statistics are listed as level, message count, and percentage. The descriptions of the severity levels, the number of messages, and percentage of the total are also displayed.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> The message count from the top 20 devices forwarding syslog messages can also be viewed. Click the Top 20 Hosts tab. Notice that there is only one host (192.168.1.254), and therefore the message count is 100%. 523 messages were received from this host.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Click the Counters tab to view message statistics, errors, disk space remaining, and program up- time.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Close all open windows.</h3></div>
+<p class="task-head">Task 4.3 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Dart Communications</h3><div class="code"><pre>https://www.dart.com/products/powersnmp-for-net#overview</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>Monitoring reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Service</th><th>Port</th><th>Role</th></tr></thead><tbody><tr><td>NTP</td><td>UDP 123</td><td>Clock synchronization</td></tr><tr><td>SNMP (poll/GET)</td><td>UDP 161</td><td>Manager queries agent for data</td></tr><tr><td>SNMP trap</td><td>UDP 162</td><td>Agent pushes an alert to the manager</td></tr><tr><td>Syslog</td><td>UDP 514</td><td>Devices forward log messages to a central server</td></tr></tbody></table></div><dl class='ref'><dt>NMS</dt><dd>Network Management Station — the monitoring server that polls SNMP agents and collects traps.</dd><dt>SNMP community string</dt><dd>A shared secret in SNMP v1/v2c; <strong>SNMPv3 adds real auth and encryption</strong> and is preferred.</dd><dt>MIB / OID</dt><dd>The structured catalog (MIB) of values an agent exposes, each identified by an OID.</dd><dt>Syslog severity</dt><dd>Levels 0 (Emergency) to 7 (Debug) that rank log message importance.</dd><dt>Why centralize logs</dt><dd>So records survive a device failure and can be searched/correlated in one place (a SIEM extends this).</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Client won't sync time</td><td>NTP blocked (UDP 123) or server not reachable</td><td>Confirm the NTP service is up on pfSense and UDP 123 is permitted; <code class="inl">w32tm /resync</code>.</td></tr><tr><td>SNMP GET returns nothing</td><td>Wrong community string or SNMP not enabled</td><td>Match the community string exactly and confirm the SNMP daemon is running on the agent.</td></tr><tr><td>No logs on the syslog server</td><td>Forwarder pointed at wrong IP, or UDP 514 blocked</td><td>Set the correct server IP on the device and allow UDP 514; confirm the server is listening.</td></tr><tr><td>Timestamps don't line up</td><td>Devices not NTP-synced</td><td>Fix NTP first — log correlation depends on synchronized clocks.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Memorize the ports: <strong>NTP 123, SNMP 161, SNMP trap 162, Syslog 514</strong> (all UDP).</li><li>Know <strong>SNMP poll (GET) vs trap</strong>, and that <strong>SNMPv3</strong> adds authentication/encryption.</li><li>Understand <strong>syslog severity levels</strong> and why <strong>centralized logging</strong> matters.</li><li>Know <strong>NTP's role</strong> in making logs/events correlatable — objective 3.2 monitoring.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. An SNMP agent pushes an unsolicited alert to the NMS. Poll or trap, and what port?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A <strong>trap</strong>, on <strong>UDP 162</strong>. (Polling/GET uses UDP 161.)</div></div><div class="q"><p class="ask">2. Why is NTP a prerequisite for useful logging?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Without synchronized clocks, timestamps across devices don't line up, making incident correlation unreliable.</div></div><div class="q"><p class="ask">3. What's the security problem with SNMP v2c, and the fix?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Its <strong>community string is sent in cleartext</strong> with no encryption. <strong>SNMPv3</strong> adds authentication and encryption.</div></div><div class="q"><p class="ask">4. Where do syslog messages go in this lab, and on what port?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">To a <strong>central syslog server</strong> on <strong>UDP 514</strong>, so logs are retained and searchable in one place.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">pfSense NTP server enabled + <code class="inl">w32tm /query /peers</code> showing the client synced</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">SNMP enabled on pfSense (community string set) and a successful <strong>SNMP GET</strong> from the NMS</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">Device configured to <strong>forward syslog</strong> to the server</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">The <strong>syslog server</strong> showing received messages</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>NTP</td><td>UDP 123 — time sync</td></tr><tr><td>SNMP GET</td><td>UDP 161 — poll device</td></tr><tr><td>SNMP trap</td><td>UDP 162 — device alert</td></tr><tr><td>Syslog</td><td>UDP 514 — central logging</td></tr><tr><td>w32tm /query /peers</td><td>Win: check NTP source</td></tr><tr><td>w32tm /resync</td><td>Win: force time resync</td></tr><tr><td>SNMPv3</td><td>Use for auth + encryption</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab09.html"><span class="lbl">← Previous lab</span>Lab 09 · Controlling Traffic and Creating ACLs</a><a class="nx" href="netplus_lab11.html"><span class="lbl">Next lab →</span>Lab 11 · Network Device Backup and Restore</a></div>
 </main>
@@ -382,5 +483,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

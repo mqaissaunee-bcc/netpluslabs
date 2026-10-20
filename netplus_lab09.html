@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="09">
@@ -272,14 +277,56 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
   <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>An <strong>Access Control List (ACL)</strong> is an ordered list of permit/deny rules applied to an interface in a direction — <strong>ingress</strong> (inbound) or <strong>egress</strong> (outbound). The router checks each packet against the rules <strong>top to bottom</strong> and acts on the first match. It's how you control <em>who can talk to whom</em> at Layer 3/4.</p><p>You first enable a basic <strong>firewall</strong> on the router (e.g. blocking ping to the device), then write <strong>static ACLs</strong> that allow PC1 but deny PC2 from reaching a server, and finally a <strong>dynamic ACL</strong> that opens access only after a condition is met.</p><div class="call tip"><span class="k">The two rules that trip everyone up</span>ACLs are evaluated <strong>first-match-wins, top to bottom</strong>, and most have an <strong>implicit deny</strong> at the end — anything not explicitly permitted is dropped. Order your rules carefully.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>GNS3</strong> with a router between <strong>LAN1</strong> (PC1, PC2) and <strong>LAN2</strong> (a server). You apply firewall rules and ACLs on the router's interfaces and test with <code class="inl">ping</code> from each PC.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Firewall on the router</p><div class="step"><h3><span class="n">1</span>Block a service to the device</h3><p>Enter config mode and, for example, disable ICMP (ping) to the router itself, then <code class="inl">commit</code> to enable the change. Test by pinging the router and confirming it's now blocked. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="configure
 # build the firewall rule, then:
 commit ; save">configure
 <span class="cmt"># build the firewall rule, then:</span>
-commit ; save</pre></div></div><p class="task-head">Static ACLs</p><div class="step"><h3><span class="n">1</span>Deny one host, permit another</h3><p>Write an ACL that <strong>allows PC1</strong> in LAN1 to reach the server but <strong>denies PC2</strong>, and apply it to the interface in the correct direction (<code class="inl">ingress</code>). The key is rule order and the deny being specific.</p><p>Test from PC1 — ping should <strong>succeed</strong>: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 172.16.31.3">ping 172.16.31.3</pre></div><p>Test from PC2 — ping should <strong>fail</strong> (no replies): <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 172.16.31.3">ping 172.16.31.3</pre></div></div><div class="step"><h3><span class="n">2</span>Verify the ACL and its application</h3><div class="code"><pre data-copy="show configuration acl">show configuration acl</pre></div></div><p class="task-head">Dynamic ACLs</p><div class="step"><h3><span class="n">1</span>Open access conditionally</h3><p>Configure a <strong>dynamic ACL</strong> that grants access only after a trigger/authentication condition, then verify the behavior changes once the condition is met. Dynamic ACLs are useful when access should be temporary or user-triggered rather than always-on. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>ACL reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Concept</th><th>Means</th></tr></thead><tbody><tr><td>Ingress (inbound)</td><td>Rules checked as traffic <em>enters</em> the interface</td></tr><tr><td>Egress (outbound)</td><td>Rules checked as traffic <em>leaves</em> the interface</td></tr><tr><td>Permit / Deny</td><td>The action taken on a matching packet</td></tr><tr><td>Implicit deny</td><td>The silent 'deny everything else' at the end of most ACLs</td></tr><tr><td>First-match</td><td>The router acts on the first rule that matches and stops evaluating</td></tr></tbody></table></div><dl class='ref'><dt>Static ACL</dt><dd>A fixed list of permit/deny rules that's always in effect.</dd><dt>Dynamic ACL</dt><dd>Rules that activate based on a condition (e.g., after authentication) — temporary access.</dd><dt>Stateful firewall</dt><dd>Tracks connection state so return traffic for an allowed session is permitted automatically; ACLs alone are often stateless.</dd><dt>Rule order matters</dt><dd>Put specific denies/permits before broader ones; a broad permit above a specific deny makes the deny unreachable.</dd><dt>Direction matters</dt><dd>The same rule applied ingress vs egress on the same interface filters opposite flows.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>ACL blocks everything</td><td>Implicit deny with no matching permit</td><td>Add an explicit permit for the traffic you <em>do</em> want before the implicit deny catches it.</td></tr><tr><td>Deny rule has no effect</td><td>A broader permit sits above it</td><td>Reorder — specific rules must come before general ones (first-match wins).</td></tr><tr><td>Wrong traffic filtered</td><td>Applied in the wrong direction</td><td>Re-check ingress vs egress; the same rule filters opposite flows depending on direction.</td></tr><tr><td>Rule typed but not enforced</td><td>Not committed, or not applied to an interface</td><td><code class="inl">commit</code>/<code class="inl">save</code> and confirm the ACL is attached to the interface with <code class="inl">show configuration acl</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>ACL evaluation is <strong>top-down, first-match</strong>, with an <strong>implicit deny</strong> at the end — classic exam traps.</li><li>Know <strong>inbound vs outbound (ingress/egress)</strong> direction and how it changes what's filtered.</li><li>Understand <strong>ACLs vs stateful firewalls</strong> and where each fits.</li><li>Recognize ACLs as a tool for <strong>segmentation and least-privilege</strong> access control.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Your ACL has a permit for the web server below a deny-any. Web traffic is blocked. Why?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>First-match wins</strong> — the deny-any matches first, so the permit below it is never reached. Move the permit above the deny.</div></div><div class="q"><p class="ask">2. What is the implicit deny?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">An unwritten <strong>deny all</strong> at the end of the ACL — any packet not explicitly permitted is dropped.</div></div><div class="q"><p class="ask">3. PC1 can reach the server but PC2 can't, as intended. Which direction was the ACL most likely applied?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Ingress</strong> on the LAN1-facing interface, so PC2's traffic is filtered as it enters the router.</div></div><div class="q"><p class="ask">4. When is a dynamic ACL preferable to a static one?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">When access should be <strong>conditional/temporary</strong> — granted only after a trigger such as authentication, rather than always open.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">Firewall working: a <strong>blocked ping</strong> to the router after the rule + <code class="inl">commit</code></label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2"><strong>PC1 ping succeeds</strong> to the server through the ACL</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><strong>PC2 ping fails</strong> to the server (denied by the ACL)</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show configuration acl</code> showing your rules and their interface/direction</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>Top-down, first-match</td><td>How ACLs are evaluated</td></tr><tr><td>Implicit deny</td><td>Unmatched traffic is dropped</td></tr><tr><td>ingress / egress</td><td>Inbound / outbound filtering direction</td></tr><tr><td>show configuration acl</td><td>Verify rules + application</td></tr><tr><td>Order: specific → general</td><td>Put narrow rules above broad ones</td></tr><tr><td>commit ; save</td><td>Apply + persist (VyOS)</td></tr></table></section>
+commit ; save</pre></div></div><p class="task-head">Static ACLs</p><div class="step"><h3><span class="n">1</span>Deny one host, permit another</h3><p>Write an ACL that <strong>allows PC1</strong> in LAN1 to reach the server but <strong>denies PC2</strong>, and apply it to the interface in the correct direction (<code class="inl">ingress</code>). The key is rule order and the deny being specific.</p><p>Test from PC1 — ping should <strong>succeed</strong>: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 172.16.31.3">ping 172.16.31.3</pre></div><p>Test from PC2 — ping should <strong>fail</strong> (no replies): <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 172.16.31.3">ping 172.16.31.3</pre></div></div><div class="step"><h3><span class="n">2</span>Verify the ACL and its application</h3><div class="code"><pre data-copy="show configuration acl">show configuration acl</pre></div></div><p class="task-head">Dynamic ACLs</p><div class="step"><h3><span class="n">1</span>Open access conditionally</h3><p>Configure a <strong>dynamic ACL</strong> that grants access only after a trigger/authentication condition, then verify the behavior changes once the condition is met. Dynamic ACLs are useful when access should be temporary or user-triggered rather than always-on. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology &amp; Addressing Table</p>
+<p class="task-head">Task 2 - Configure Firewall</p>
+<p class="task-head">Task 2.1 - Configure and Test Firewall on a Router</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the login screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> On the Windows desktop, double-click the Lab Files folder to open it.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the Lab Files folder, double-click the Lab 09 GNS3 Portable Project File to open it.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The Project window opens with Lab 09 in the Name field. Click OK to open Lab 09.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> It will take about 1 minute for Lab 09 to load. You will see the Please wait screen displaying the progress.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The Lab 09 GNS3 network topology is now visible and matches the security topology.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Next, we need to start the devices in the network. In the top menu bar, click the big green arrow to start all nodes. In the Confirm Start All window, click Yes.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> All connections between devices are now green, indicating all devices have started. The network is now ready for configuration. In this topology, LAN 1 represents the outside network and LAN 2, the inside network. First, you will console into R1 and verify end-to-end connectivity between LANs. Next, you will configure and test a basic firewall setting. Refer to the Security topology and addressing table to complete the following steps.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Console into R1. a. Right-click R1, and then click the Console icon. b. The R1 solarwinds console window opens. Press Enter to access the login prompt. Type vyos at the R1 login, and then press Enter. When prompted for a password, type vyos. Notice the banner message displayed: Firewall. Authorized Access Only! You are now logged into R1. Minimize the R1 console window. c. Next, you will verify IPv4 and IPv6 connectivity between the PCs using ping. Right click on PC1, and then click Console. d. In the TightVNC Viewer for PC1, on the bottom of the Linux Desktop, click the Terminal icon to open it. e. In the Terminal window,from PC1, ping the PC2 IPv4 address following the addressing table. Type ping 192.168.10.3, and then press Enter. After a few replies, type f.    Repeat step 10e above to ping PC3 and the server from PC1. g. Repeat step 10e and 10f for IPv6. Use the addressing table to verify IPv6 addressing. From PC1: • Ping PC2: type ping 2000:b32:c0e9:1::3 • Ping PC3: type ping 2000:b32:c0e9:3::2 • Ping Server: type ping 2000:b32:c0e9:3::3</h3><div class="call tip"><span class="k">Note</span><p>Ctrl + C to stop the pings. Notice that pings to PC2 were successful.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <strong>PC1 ping succeeds</strong> to the server through the ACL</div><div class="step"><h3 class="fh"><span class="n">12</span> Next, we will configure a simple firewall in R1 to block all incoming pings from LAN 1. Many enterprises will do this to prevent simple Denial of Service (DoS) attacks that hackers may use. A DoS attack denies legitimate user access to resources within an organization. An example is when an attacker sends continuous service requests to a server or networking device, such as ICMP pings, which the device tries to respond to. This saturation of ping requests forces the device to respond continuously, which can immobilize that device and prevent it from responding to other requests from legitimate users. a. In the previous steps, you verified end-to-end connectivity using ICMP pings. All replies were successful. Next, we will ping the R1 outside interface (e0) from a host in LAN1 to verify reachability without a firewall. From PC1, ping the R1 e0 interface. Type ping 192.168.10.1, and then press Enter. Type CTRL + C to stop the pings. Notice that the pings were successful. b. Next, we will configure a firewall in R1 to block all incoming ping requests. Restore the R1 console. You may have to log back in. Enter configuration mode by typing configure at the prompt. c. Configure a firewall statement to block all incoming pings. Type set firewall all- changes. d. To test the firewall, navigate back to the PC1 console and attempt to ping the R1 e0 IP address again. Type ping 192.168.10.1, and then press Enter. Notice that there are no replies from R1. These ping requests were blocked by the firewall. e. Adjust both R1 and PC1 consoles so you can see them both in the GNS3 window. Type delete firewall all-ping, and then press Enter. Next type commit to enable the changes. f.    Look at the PC1 terminal. What do you notice? You should see the ping replies from R1 resuming, since the firewall was removed. Press CTRL + C to stop the pings.</h3><div class="code"><pre>ping disable, and then press Enter. Next, type commit to enable the configuration</pre></div><div class="call tip"><span class="k">Note</span><p>Navigate back to R1 while keeping the PC1 console visible. Remove the firewall from R1.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Firewall working: a <strong>blocked ping</strong> to the router after the rule + <code class="inl">commit</code></div><p class="task-head">Task 2.2 - Conclusion</p>
+<p class="task-head">Task 3 - Access Control Lists (ACLs)</p>
+<p class="task-head">Task 3.1 - Configure and Verify Static ACLs</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Console into R2. Right-click on R2, and then click Console.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> In the solarwinds console for R2, press Enter to access the login prompt.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> At the login: prompt, type Admin, and then press Enter. At the password: prompt, type netlab123, and then press Enter. Notice the banner message of This is R2. Authorized Access Only! and the R2.1# prompt. Now we will create a static (policy) ACL that will deny all IPv4 traffic from PC2 on LAN1 to the server on LAN2. Then we will apply the ACL to interface P1 on R2 inbound. To create the static ACL: •     Create the policy file: o Type the CLI command vi &lt;Filename&gt;.pol where &lt;Filename&gt; is any user-defined string that helps you keep track of the file. o Once in vi, press i for insert mode, and start typing entries to create a static ACL with if/then statements. Once complete, press esc to return to vi command mode, and then type :wq to write (save) and quit. •     Apply the policy to an interface in a specific direction. i.     R2.X# vi SACL.pol (creates a policy file named SACL) ii.     i for insert mode (you will not see the i) iii.     Entries for the static ACL: entry denyPC2 { if {source-address 192.168.10.3/24; destination-address then {deny;} iv.      Press the esc key, then type :wq., and then press Enter to save and then quit.</h3><div class="code"><pre>172.16.31.3/24;}
+}</pre></div><div class="call tip"><span class="k">Note</span><p>At the R2 console, type the following to create a static ACL: This will bring you back to the R2 console prompt.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Next, you verify that the policy (static ACL) was properly configured. At the R2 prompt, type check policy SACL. Notice that the file check was successful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Next, we need to apply the ACL policy to an interface in the correct direction. Since this ACL will be denying IPv4 traffic from PC2 on LAN1 to the server on LAN2, we need to apply the ACL inbound (ingress) on the R2 P1 interface. On R2, type configure access-list SACL port 1 ingress</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Next, we will test the ACL. Right click on PC2, and then click Console.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the TightVNC Viewer for PC2, on the bottom of the Linux Desktop, if a Terminal is not already opened, click the Terminal icon to open it.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> In the Terminal window from PC2, ping the server's IPv4 address following the addressing table. Type ping 172.16.31.3, and then press Enter. Notice there are no ping replies. Pings to PC2 were unsuccessful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> In the PC2 terminal, press CTRL+C to stop the sending of pings. Next, ping the server's IPv6 address. Type ping 2000:b32:c0e9:3::3, and then press Enter. Notice that the pings were successful. Why? Press CTRL+C again to stop the pings. Pings were successful for IPv6 because the ACL was specific to IPv4. It was specifically written to deny all IPv4 traffic from PC2 on LAN1 to the server on LAN2.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Next, we will remove the ACL from the P1 interface, and test again with IPv4 pings from PC2 to the server. Navigate back to the R2 console. You may have to log back in. Type unconfigure</h3><div class="code"><pre>access-list SACL ingress</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> PC2 should be able to ping the server now since the ACL is no longer applied to the R2 P1 interface. To test this, ping the server's IPv4 address. Navigate back to the PC2 terminal, type ping 172.16.31.3, and then press Enter. Notice that the pings are successful. Press CTRL+C again to stop the pings.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> Remove the static ACL policy (SACL). From the R2 console, type rm SACL.pol, and then press</h3><div class="call tip"><span class="k">Note</span><p>Enter. Press Y for yes, and then press Enter.</p></div></div>
+<p class="task-head">Task 3.2 - Configure and Verify Dynamic ACLs</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> To define ACL entries (ACEs), we will use the create access-list command. Follow the steps below to configure R2: a. R2.x# create access-list permitPC1 "source-address 192.168.10.2/32; destination-address 172.16.31.3/32;" permit; (creates an ACL named permitPC1 that will permit all IPv4 traffic from PC1 to the server in LAN2) b. R2.x# create access-list denyPC2 "source-address 192.168.10.3/32; destination-address 172.16.31.3/32;" deny; (creates an ACL named denyPC2 that will deny all IPv4 traffic from PC2 to the server in LAN2) c. R2.x# configure access-list add permitPC1 last port 1 ingress (applies ACL permitPC1 to port 1 inbound) d. R2.x# configure access-list add denyPC2 last port 1 ingress (applies ACL denyPC2 to port 1 inbound)</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> We will now verify that the ACLs are properly configured and applied to port P1. In R2, type (2).</h3><div class="code"><pre>show configuration acl. Notice the ACL configuration (1) and the application of the ACLs</pre></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show configuration acl</code> showing your rules and their interface/direction</div><div class="step"><h3 class="fh"><span class="n">3</span> To view the ACL rules on port 1, type show access-list port 1. Notice that the two ACL rules 1 and 2 are mapped to port 1 on R2.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Next, we will test the ACL to see if works as configured based on the given scenario. Remember that the ACL is supposed to allow (permit) PC1 in LAN1 access to the server in LAN 2, but will prevent (deny) PC2 from accessing the server. Let's test PC1 access first. Refer to the topology and addressing table if necessary. Navigate back to the PC1 console terminal and ping the server in LAN2. Type ping 172.16.31.3, and then press Enter. Type CTRL+C to stop the pings. Notice that the pings were successful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> The previous step validated that the permitPC1 ACL rule worked, allowing PC1 to access the server. Next navigate to the PC2 console terminal and attempt to ping the server in LAN 2. Type ping 172.16.31.3, and then press Enter. Notice that there were no ping replies. PC2 in</h3><div class="call tip"><span class="k">Note</span><p>LAN1 is denied access to the server by ACL rule denyPC2.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <strong>PC2 ping fails</strong> to the server (denied by the ACL)</div><p class="task-head">Task 3.3 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Exos Configuration Guide</h3><div class="code"><pre>https://documentation.extremenetworks.com/exos_commands_30.1/GUID-078D3A24-13A4-
+40AB-88FE-2759F3C1E977.shtml</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> ExtremeXOS® User Reference Guide</h3><div class="code"><pre>https://documentation.extremenetworks.com/exos_30.3/GUID-7D648968-51CD-4E05-828C-
+8606BD5C0474.shtml</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Vyos Configuration Guide</h3><div class="code"><pre>https://docs.vyos.io/en/equuleus/configuration/index.html</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>ACL reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Concept</th><th>Means</th></tr></thead><tbody><tr><td>Ingress (inbound)</td><td>Rules checked as traffic <em>enters</em> the interface</td></tr><tr><td>Egress (outbound)</td><td>Rules checked as traffic <em>leaves</em> the interface</td></tr><tr><td>Permit / Deny</td><td>The action taken on a matching packet</td></tr><tr><td>Implicit deny</td><td>The silent 'deny everything else' at the end of most ACLs</td></tr><tr><td>First-match</td><td>The router acts on the first rule that matches and stops evaluating</td></tr></tbody></table></div><dl class='ref'><dt>Static ACL</dt><dd>A fixed list of permit/deny rules that's always in effect.</dd><dt>Dynamic ACL</dt><dd>Rules that activate based on a condition (e.g., after authentication) — temporary access.</dd><dt>Stateful firewall</dt><dd>Tracks connection state so return traffic for an allowed session is permitted automatically; ACLs alone are often stateless.</dd><dt>Rule order matters</dt><dd>Put specific denies/permits before broader ones; a broad permit above a specific deny makes the deny unreachable.</dd><dt>Direction matters</dt><dd>The same rule applied ingress vs egress on the same interface filters opposite flows.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>ACL blocks everything</td><td>Implicit deny with no matching permit</td><td>Add an explicit permit for the traffic you <em>do</em> want before the implicit deny catches it.</td></tr><tr><td>Deny rule has no effect</td><td>A broader permit sits above it</td><td>Reorder — specific rules must come before general ones (first-match wins).</td></tr><tr><td>Wrong traffic filtered</td><td>Applied in the wrong direction</td><td>Re-check ingress vs egress; the same rule filters opposite flows depending on direction.</td></tr><tr><td>Rule typed but not enforced</td><td>Not committed, or not applied to an interface</td><td><code class="inl">commit</code>/<code class="inl">save</code> and confirm the ACL is attached to the interface with <code class="inl">show configuration acl</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>ACL evaluation is <strong>top-down, first-match</strong>, with an <strong>implicit deny</strong> at the end — classic exam traps.</li><li>Know <strong>inbound vs outbound (ingress/egress)</strong> direction and how it changes what's filtered.</li><li>Understand <strong>ACLs vs stateful firewalls</strong> and where each fits.</li><li>Recognize ACLs as a tool for <strong>segmentation and least-privilege</strong> access control.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Your ACL has a permit for the web server below a deny-any. Web traffic is blocked. Why?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>First-match wins</strong> — the deny-any matches first, so the permit below it is never reached. Move the permit above the deny.</div></div><div class="q"><p class="ask">2. What is the implicit deny?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">An unwritten <strong>deny all</strong> at the end of the ACL — any packet not explicitly permitted is dropped.</div></div><div class="q"><p class="ask">3. PC1 can reach the server but PC2 can't, as intended. Which direction was the ACL most likely applied?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Ingress</strong> on the LAN1-facing interface, so PC2's traffic is filtered as it enters the router.</div></div><div class="q"><p class="ask">4. When is a dynamic ACL preferable to a static one?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">When access should be <strong>conditional/temporary</strong> — granted only after a trigger such as authentication, rather than always open.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">Firewall working: a <strong>blocked ping</strong> to the router after the rule + <code class="inl">commit</code></label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2"><strong>PC1 ping succeeds</strong> to the server through the ACL</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><strong>PC2 ping fails</strong> to the server (denied by the ACL)</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show configuration acl</code> showing your rules and their interface/direction</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>Top-down, first-match</td><td>How ACLs are evaluated</td></tr><tr><td>Implicit deny</td><td>Unmatched traffic is dropped</td></tr><tr><td>ingress / egress</td><td>Inbound / outbound filtering direction</td></tr><tr><td>show configuration acl</td><td>Verify rules + application</td></tr><tr><td>Order: specific → general</td><td>Put narrow rules above broad ones</td></tr><tr><td>commit ; save</td><td>Apply + persist (VyOS)</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab08.html"><span class="lbl">← Previous lab</span>Lab 08 · Ethernet Switching Technologies</a><a class="nx" href="netplus_lab10.html"><span class="lbl">Next lab →</span>Lab 10 · Network Availability</a></div>
 </main>
@@ -386,5 +433,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="01">
@@ -272,10 +277,46 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
-  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>The <strong>OSI model</strong> is seven layers of abstraction that describe how data is packaged to cross a network. As data moves <em>down</em> the stack on the sender, each layer wraps it in its own header — that's <strong>encapsulation</strong>. On the receiver it moves <em>up</em>, and each layer strips its header off — <strong>de-encapsulation</strong>.</p><p>This lab makes that abstract idea concrete: you use <strong>Wireshark</strong> to capture live traffic and read the actual bytes each layer adds. You'll see an <strong>Ethernet frame</strong> (Layer 2), the <strong>IP packet</strong> inside it (Layer 3), the <strong>TCP/UDP segment</strong> inside that (Layer 4), and <strong>ICMP</strong> — the protocol <code class="inl">ping</code> rides on.</p><div class="call tip"><span class="k">The one mental model to keep</span>Each layer only talks to its peer on the other end. Layer 3 on your PC is having a conversation with Layer 3 on the server; it neither knows nor cares what Layer 2 did to carry the message. Encapsulation is how that illusion is maintained.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p>You capture on <strong>WinOS</strong> using Wireshark. You'll generate traffic with <code class="inl">ping</code> and by browsing, then stop the capture and inspect individual packets in the packet-detail pane.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Capture walkthrough</h2><p class="task-head">Task 2 — Capture and examine Ethernet frames</p><div class="step"><h3><span class="n">1</span>Start a capture</h3><p>Open <strong>Wireshark</strong>, pick the active interface, and start capturing. Generate a little traffic so there's something to read.</p><div class="code"><pre data-copy="ping 192.168.1.254">ping 192.168.1.254</pre></div></div><div class="step"><h3><span class="n">2</span>Read the frame header (Layer 2)</h3><p>Click any packet and expand <strong>Ethernet II</strong>. Note the <strong>destination</strong> and <strong>source MAC</strong> addresses (48-bit, shown as <code class="inl">aa:bb:cc:...</code>) and the <strong>EtherType</strong> (<code class="inl">0x0800</code> = IPv4). That's the Layer-2 envelope. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Task 3 — TCP and UDP headers (Layer 4)</p><div class="step"><h3><span class="n">1</span>Examine a TCP segment</h3><p>Filter for a TCP conversation and expand <strong>Transmission Control Protocol</strong>. Identify the <strong>source/destination ports</strong>, <strong>sequence</strong> and <strong>acknowledgment</strong> numbers, and the <strong>flags</strong> (SYN, ACK, FIN). This is how TCP delivers <em>reliably and in order</em>.</p><div class="code"><pre data-copy="tcp">tcp</pre></div></div><div class="step"><h3><span class="n">2</span>Examine a UDP datagram</h3><p>Now filter for UDP and expand it. Notice how much <em>smaller</em> the header is — just source port, destination port, length, checksum. No sequence numbers, no handshake. UDP trades reliability for speed. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="udp">udp</pre></div></div><p class="task-head">Task 4 — IP header (Layer 3)</p><div class="step"><h3><span class="n">1</span>Read the packet header</h3><p>Expand <strong>Internet Protocol Version 4</strong>. Find the <strong>source</strong> and <strong>destination IP</strong>, the <strong>TTL</strong> (time to live — decremented by each router), and the <strong>Protocol</strong> field (<code class="inl">1</code>=ICMP, <code class="inl">6</code>=TCP, <code class="inl">17</code>=UDP). The IP header is what routers read to forward the packet.</p></div><p class="task-head">Task 5 — ICMP packets</p><div class="step"><h3><span class="n">1</span>Examine ping echo request/reply</h3><p>Filter for ICMP. You'll see <strong>Echo (ping) request</strong> (type 8) and <strong>Echo reply</strong> (type 0) pairs. ICMP is the Layer-3 helper protocol that <code class="inl">ping</code> and <code class="inl">traceroute</code> depend on. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="icmp">icmp</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>Layer &amp; header reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>OSI layer</th><th>PDU name</th><th>Example header fields</th><th>Example protocols</th></tr></thead><tbody><tr><td>7–5 Application/Presentation/Session</td><td>Data</td><td>(app-specific)</td><td>HTTP, DNS, TLS</td></tr><tr><td>4 Transport</td><td>Segment (TCP) / Datagram (UDP)</td><td>Src/dst port, seq/ack, flags</td><td>TCP, UDP</td></tr><tr><td>3 Network</td><td>Packet</td><td>Src/dst IP, TTL, protocol</td><td>IP, ICMP</td></tr><tr><td>2 Data Link</td><td>Frame</td><td>Src/dst MAC, EtherType, FCS</td><td>Ethernet, ARP</td></tr><tr><td>1 Physical</td><td>Bits</td><td>(electrical/optical signaling)</td><td>copper, fiber, RF</td></tr></tbody></table></div><p><strong>EtherType quick values:</strong> <code class="inl">0x0800</code> IPv4 · <code class="inl">0x86DD</code> IPv6 · <code class="inl">0x0806</code> ARP.</p><dl class='ref'><dt>Encapsulation</dt><dd>Adding each layer's header as data moves <em>down</em> the stack on the sender.</dd><dt>De-encapsulation</dt><dd>Stripping each header as data moves <em>up</em> the stack on the receiver.</dd><dt>PDU</dt><dd>Protocol Data Unit — the name for the data+header at a given layer (frame, packet, segment).</dd><dt>Display filter</dt><dd>Wireshark expression (e.g. <code class="inl">tcp.port==80</code>) that shows only matching packets without discarding the capture.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Capture shows nothing</td><td>Wrong interface selected, or no traffic generated</td><td>Pick the interface with the live IP; run a <code class="inl">ping</code> to create packets.</td></tr><tr><td>Too many packets to read</td><td>Everything captured at once</td><td>Apply a display filter — <code class="inl">icmp</code>, <code class="inl">tcp</code>, <code class="inl">udp</code>, or <code class="inl">ip.addr==192.168.1.254</code>.</td></tr><tr><td>Can't tell TCP from UDP</td><td>Looking at the wrong layer</td><td>Expand the Layer-4 block; TCP has seq/ack + flags, UDP has only 4 fields.</td></tr><tr><td>MAC vs IP confusion</td><td>Mixing Layer 2 and Layer 3</td><td>MAC = Ethernet header (local delivery); IP = IP header (end-to-end). Both are in every routed packet.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Know the <strong>seven layers in order</strong> and the PDU name at each — a classic exam item. Mnemonic: <em>All People Seem To Need Data Processing</em> (7→1).</li><li>Match protocols to layers: <strong>TCP/UDP = 4</strong>, <strong>IP/ICMP = 3</strong>, <strong>Ethernet/ARP = 2</strong>.</li><li>Know the <strong>protocol field</strong> values and common <strong>EtherTypes</strong> above.</li><li>Understand <strong>encapsulation order</strong> and that each layer communicates with its peer layer.</li><li>Wireshark is the tool the exam expects you to reach for to <em>analyze</em> traffic (objective 5.5).</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. At which layer is a PDU called a <em>frame</em>, and what addressing does it use?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Layer 2 (Data Link)</strong>. It uses 48-bit <strong>MAC addresses</strong> for local, hop-to-hop delivery.</div></div><div class="q"><p class="ask">2. You see a packet with IP protocol field = 17. What's inside?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A <strong>UDP</strong> datagram. (1 = ICMP, 6 = TCP, 17 = UDP.)</div></div><div class="q"><p class="ask">3. Why does a UDP header have no sequence numbers?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">UDP is connectionless and unreliable by design — it doesn't track order or guarantee delivery, which is why it's smaller and faster than TCP.</div></div><div class="q"><p class="ask">4. What happens to the TTL field as a packet crosses routers?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Each router decrements it by 1. At 0 the packet is dropped and an ICMP <em>time exceeded</em> is returned — this is exactly how <code class="inl">traceroute</code> works.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">Expanded <strong>Ethernet II</strong> header showing source &amp; destination MAC and EtherType</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">Expanded <strong>IPv4</strong> header showing source/destination IP, TTL, and protocol field</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">A <strong>TCP</strong> segment with ports and flags, and a <strong>UDP</strong> datagram side by side (two shots or one of each)</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">An <strong>ICMP echo request/reply</strong> pair in the packet list</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>tcp</td><td>Show only TCP</td></tr><tr><td>udp</td><td>Show only UDP</td></tr><tr><td>icmp</td><td>Show only ICMP / ping</td></tr><tr><td>ip.addr==192.168.1.254</td><td>All traffic to/from one host</td></tr><tr><td>tcp.port==80</td><td>HTTP traffic</td></tr><tr><td>eth.addr==aa:bb:cc:dd:ee:ff</td><td>Traffic for one MAC</td></tr><tr><td>ping &lt;ip&gt;</td><td>Generate ICMP traffic to capture</td></tr></table></section>
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>The <strong>OSI model</strong> is seven layers of abstraction that describe how data is packaged to cross a network. As data moves <em>down</em> the stack on the sender, each layer wraps it in its own header — that's <strong>encapsulation</strong>. On the receiver it moves <em>up</em>, and each layer strips its header off — <strong>de-encapsulation</strong>.</p><p>This lab makes that abstract idea concrete: you use <strong>Wireshark</strong> to capture live traffic and read the actual bytes each layer adds. You'll see an <strong>Ethernet frame</strong> (Layer 2), the <strong>IP packet</strong> inside it (Layer 3), the <strong>TCP/UDP segment</strong> inside that (Layer 4), and <strong>ICMP</strong> — the protocol <code class="inl">ping</code> rides on.</p><div class="call tip"><span class="k">The one mental model to keep</span>Each layer only talks to its peer on the other end. Layer 3 on your PC is having a conversation with Layer 3 on the server; it neither knows nor cares what Layer 2 did to carry the message. Encapsulation is how that illusion is maintained.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p>You capture on <strong>WinOS</strong> using Wireshark. You'll generate traffic with <code class="inl">ping</code> and by browsing, then stop the capture and inspect individual packets in the packet-detail pane.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Capture walkthrough</h2><p class="task-head">Task 2 — Capture and examine Ethernet frames</p><div class="step"><h3><span class="n">1</span>Start a capture</h3><p>Open <strong>Wireshark</strong>, pick the active interface, and start capturing. Generate a little traffic so there's something to read.</p><div class="code"><pre data-copy="ping 192.168.1.254">ping 192.168.1.254</pre></div></div><div class="step"><h3><span class="n">2</span>Read the frame header (Layer 2)</h3><p>Click any packet and expand <strong>Ethernet II</strong>. Note the <strong>destination</strong> and <strong>source MAC</strong> addresses (48-bit, shown as <code class="inl">aa:bb:cc:...</code>) and the <strong>EtherType</strong> (<code class="inl">0x0800</code> = IPv4). That's the Layer-2 envelope. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Task 3 — TCP and UDP headers (Layer 4)</p><div class="step"><h3><span class="n">1</span>Examine a TCP segment</h3><p>Filter for a TCP conversation and expand <strong>Transmission Control Protocol</strong>. Identify the <strong>source/destination ports</strong>, <strong>sequence</strong> and <strong>acknowledgment</strong> numbers, and the <strong>flags</strong> (SYN, ACK, FIN). This is how TCP delivers <em>reliably and in order</em>.</p><div class="code"><pre data-copy="tcp">tcp</pre></div></div><div class="step"><h3><span class="n">2</span>Examine a UDP datagram</h3><p>Now filter for UDP and expand it. Notice how much <em>smaller</em> the header is — just source port, destination port, length, checksum. No sequence numbers, no handshake. UDP trades reliability for speed. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="udp">udp</pre></div></div><p class="task-head">Task 4 — IP header (Layer 3)</p><div class="step"><h3><span class="n">1</span>Read the packet header</h3><p>Expand <strong>Internet Protocol Version 4</strong>. Find the <strong>source</strong> and <strong>destination IP</strong>, the <strong>TTL</strong> (time to live — decremented by each router), and the <strong>Protocol</strong> field (<code class="inl">1</code>=ICMP, <code class="inl">6</code>=TCP, <code class="inl">17</code>=UDP). The IP header is what routers read to forward the packet.</p></div><p class="task-head">Task 5 — ICMP packets</p><div class="step"><h3><span class="n">1</span>Examine ping echo request/reply</h3><p>Filter for ICMP. You'll see <strong>Echo (ping) request</strong> (type 8) and <strong>Echo reply</strong> (type 0) pairs. ICMP is the Layer-3 helper protocol that <code class="inl">ping</code> and <code class="inl">traceroute</code> depend on. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="icmp">icmp</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - The OSI Model and Encapsulation</p>
+<p class="task-head">Task 2 - Using Wireshark to Capture and Analyze Frames</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, then click Send CTRL+ALT+DEL to get to the log in screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Double-click the Lab Files folder on the Desktop.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Double-click the Lab 01 file to open the Wireshark capture.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The Wireshark capture opens. Familiarize yourself with the three panes. Remember, the top pane is the Packet List pane which displays all the captured packets. The left pane shows the details for a selected packet and the right pane displays the actual data content in bytes. a. Click line 8 in the No. column in the Packet List pane. This is an HTTP Get packet used by a web browser to request a web page as indicated in the Info column. b. Notice in the protocol column, the protocol is http. The Source and Destination columns display the IPv4 addresses of the requesting computer and the destination server.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Now let's examine the Packet Details pane. Click the &gt; to the left of Hypertext Transfer Protocol to expand. a. Hypertext Transfer Protocol (HTTP) is an application protocol used by web browsers to request and view web pages. The GET message is used to request information from a web server. b. Scroll down in the Packet List pane and click on packet 41. c. Look in the Packet Details pane to view a response from a web server.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Next, we will examine the Packet Bytes pane to view data in Bytes. a. Click the Date: row under Server: nginx\r\n b. The pane on the bottom right is the Packet Bytes pane. c. Notice the left area highlighted in blue. This represents the information from the Packet Details pane expressed in bytes in hexadecimal on. Notice on the far right, this represents the same data in ASCII in clear text.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Next, we will examine the Ethernet II frame. Click the &gt; to the left of Ethernet II to expand. a. Notice the Source (Src) and Destination (Dst) layer 2 MAC addresses.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Expanded <strong>Ethernet II</strong> header showing source &amp; destination MAC and EtherType</div><p class="task-head">Task 2.2 - Conclusion</p>
+<p class="task-head">Task 3 - Examine TCP and UDP Headers</p>
+<p class="task-head">Task 3.1 - Examine TCP Headers</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Let's start with TCP. Go back to the Wireshark capture, and in the Packet List pane, click on frame 7. Notice the Protocol column states TCP.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Go to the Packet Details pane and click the &gt; next to Transmission Control Protocol to expand. Notice the fields (sections) in the TCP header. The destination port is 80, which is used to identify HTTP. Port numbers are used to identify applications using a network. Sequence numbers are used to number each segment before transmission, so that they can be put back in order at the destination. Acknowledgement numbers are used to indicate receipt of an agreed amount of segments sent. Window size is a negotiated value between a source and destination on how many segments can be sent at a time without an acknowledgement.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> A <strong>TCP</strong> segment with ports and flags, and a <strong>UDP</strong> datagram side by side (two shots or one of each)</div><p class="task-head">Task 3.2 - Examine UDP Headers</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Let's explore UDP. Wireshark also allows us to apply a display filter to view specific protocols. Filter UDP traffic by typing udp in the Apply a display filter section of the</h3><div class="call tip"><span class="k">Note</span><p>Wireshark capture, and then press Enter. Your Wireshark capture should look like this. Frame 228 should be selected.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Frame 228 is a Domain Name System (DNS) packet. DNS is an application layer protocol. It is an application that is used to convert website names known as Uniform Resource Locators (URLs) into IP addresses. Computers do not recognize names in a URL, so they must be translated into a number. This number is known as an IP address. DNS is a protocol that can use TCP or UDP at the transport layer. In this example, DNS is using the UDP protocol. Like TCP, UDP also uses port numbers to identify networked applications. In the packet capture, a standard DNS query is displayed. A query is when a host is asking a DNS server to translate a URL into an IP address.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> In the Packet Details pane, click the &gt; next to Domain Name System to expand. Click the &gt; next to Queries. Notice that query was sent to the mozilla.cloudfare-dns.com server.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Next, expand User Datagram Protocol by clicking the &gt; as before.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Remember that UDP does not have as much overhead as TCP, which makes it faster; however, it uses a Checksum to validate receipt of segments.</h3></div>
+<p class="task-head">Task 4 - Examine IP Headers</p>
+<p class="task-head">Task 4.1 - Examine Packet Header</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Return to the Wireshark capture and frame 228. Expand Internet Protocol Version 4 by clicking the &gt; in the Packet Details pane. The contents of an IPv4 header are displayed.</h3><div class="call tip"><span class="k">Note</span><p>Remember a packet is an encapsulated segment. View the various fields in the IP header.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Expanded <strong>IPv4</strong> header showing source/destination IP, TTL, and protocol field</div><div class="step"><h3 class="fh"><span class="n">2</span> Notice that both the source and destination IPv4 addresses are displayed. Remember that this is a DNS frame using the UDP transport protocol, so the source address is the client and the destination is the server.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> The Differentiated Services Field (DSCP) is used to implement Quality of Service (QoS) parameters in packets. The Time to Live field is used to indicate how many routers, also called hops, the packet goes through from its source to the final destination.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Look at the Protocol field. This represents the transport layer protocol in the packet and is identified as a number. In this packet, UDP is the protocol used by DNS, identified by number (17). If the transport protocol was TCP, it would be 6.</h3></div>
+<p class="task-head">Task 5 - Examine ICMP Packets</p>
+<p class="task-head">Task 5.1 - Examine ICMP Ping Packets</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Ping is a layer 3 protocol that uses ICMP to test connectivity between two devices. Ping uses two ICMP packet types known as Echo Requests and Echo Replies. An Echo request is sent by a source device to a specific destination device using the IP address or name of the device. If the destination is reachable and able to respond, it echoes back a reply to the source. Ping is used as a basic connectivity test to ensure a source host can reach a destination host and return. It is a round trip test. Let's explore. Return to the Wireshark capture. Filter ICMP packets by typing icmp in the</h3><div class="call tip"><span class="k">Note</span><p>Apply a display filter section of the Wireshark capture, and then press Enter.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Observe frame 5332. Notice the Source and Destination IP addresses and the ICMP</h3><div class="call tip"><span class="k">Note</span><p>Protocol. Line 5332 displays an Echo (ping) request.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Next, move to the Packet Details pane. Expand Internet Control Message Protocol by clicking the &gt; in the Packet Details pane. The ICMP fields are displayed.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Notice the Type: 8 is a ping echo request. In the Packet List pane, click frame 5338. Expand Internet Control Message Protocol by clicking the &gt; in the Packet Details pane. The ICMP</h3><div class="call tip"><span class="k">Note</span><p>Type and Code fields are displayed.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> An <strong>ICMP echo request/reply</strong> pair in the packet list</div><div class="step"><h3 class="fh"><span class="n">5</span> Close the Wireshark capture.</h3></div>
+<p class="task-head">Task 5.2 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Wireshark: http://www.wireshark.org</h3></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>Layer &amp; header reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>OSI layer</th><th>PDU name</th><th>Example header fields</th><th>Example protocols</th></tr></thead><tbody><tr><td>7–5 Application/Presentation/Session</td><td>Data</td><td>(app-specific)</td><td>HTTP, DNS, TLS</td></tr><tr><td>4 Transport</td><td>Segment (TCP) / Datagram (UDP)</td><td>Src/dst port, seq/ack, flags</td><td>TCP, UDP</td></tr><tr><td>3 Network</td><td>Packet</td><td>Src/dst IP, TTL, protocol</td><td>IP, ICMP</td></tr><tr><td>2 Data Link</td><td>Frame</td><td>Src/dst MAC, EtherType, FCS</td><td>Ethernet, ARP</td></tr><tr><td>1 Physical</td><td>Bits</td><td>(electrical/optical signaling)</td><td>copper, fiber, RF</td></tr></tbody></table></div><p><strong>EtherType quick values:</strong> <code class="inl">0x0800</code> IPv4 · <code class="inl">0x86DD</code> IPv6 · <code class="inl">0x0806</code> ARP.</p><dl class='ref'><dt>Encapsulation</dt><dd>Adding each layer's header as data moves <em>down</em> the stack on the sender.</dd><dt>De-encapsulation</dt><dd>Stripping each header as data moves <em>up</em> the stack on the receiver.</dd><dt>PDU</dt><dd>Protocol Data Unit — the name for the data+header at a given layer (frame, packet, segment).</dd><dt>Display filter</dt><dd>Wireshark expression (e.g. <code class="inl">tcp.port==80</code>) that shows only matching packets without discarding the capture.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Capture shows nothing</td><td>Wrong interface selected, or no traffic generated</td><td>Pick the interface with the live IP; run a <code class="inl">ping</code> to create packets.</td></tr><tr><td>Too many packets to read</td><td>Everything captured at once</td><td>Apply a display filter — <code class="inl">icmp</code>, <code class="inl">tcp</code>, <code class="inl">udp</code>, or <code class="inl">ip.addr==192.168.1.254</code>.</td></tr><tr><td>Can't tell TCP from UDP</td><td>Looking at the wrong layer</td><td>Expand the Layer-4 block; TCP has seq/ack + flags, UDP has only 4 fields.</td></tr><tr><td>MAC vs IP confusion</td><td>Mixing Layer 2 and Layer 3</td><td>MAC = Ethernet header (local delivery); IP = IP header (end-to-end). Both are in every routed packet.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Know the <strong>seven layers in order</strong> and the PDU name at each — a classic exam item. Mnemonic: <em>All People Seem To Need Data Processing</em> (7→1).</li><li>Match protocols to layers: <strong>TCP/UDP = 4</strong>, <strong>IP/ICMP = 3</strong>, <strong>Ethernet/ARP = 2</strong>.</li><li>Know the <strong>protocol field</strong> values and common <strong>EtherTypes</strong> above.</li><li>Understand <strong>encapsulation order</strong> and that each layer communicates with its peer layer.</li><li>Wireshark is the tool the exam expects you to reach for to <em>analyze</em> traffic (objective 5.5).</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. At which layer is a PDU called a <em>frame</em>, and what addressing does it use?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Layer 2 (Data Link)</strong>. It uses 48-bit <strong>MAC addresses</strong> for local, hop-to-hop delivery.</div></div><div class="q"><p class="ask">2. You see a packet with IP protocol field = 17. What's inside?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A <strong>UDP</strong> datagram. (1 = ICMP, 6 = TCP, 17 = UDP.)</div></div><div class="q"><p class="ask">3. Why does a UDP header have no sequence numbers?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">UDP is connectionless and unreliable by design — it doesn't track order or guarantee delivery, which is why it's smaller and faster than TCP.</div></div><div class="q"><p class="ask">4. What happens to the TTL field as a packet crosses routers?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Each router decrements it by 1. At 0 the packet is dropped and an ICMP <em>time exceeded</em> is returned — this is exactly how <code class="inl">traceroute</code> works.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1">Expanded <strong>Ethernet II</strong> header showing source &amp; destination MAC and EtherType</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">Expanded <strong>IPv4</strong> header showing source/destination IP, TTL, and protocol field</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">A <strong>TCP</strong> segment with ports and flags, and a <strong>UDP</strong> datagram side by side (two shots or one of each)</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">An <strong>ICMP echo request/reply</strong> pair in the packet list</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>tcp</td><td>Show only TCP</td></tr><tr><td>udp</td><td>Show only UDP</td></tr><tr><td>icmp</td><td>Show only ICMP / ping</td></tr><tr><td>ip.addr==192.168.1.254</td><td>All traffic to/from one host</td></tr><tr><td>tcp.port==80</td><td>HTTP traffic</td></tr><tr><td>eth.addr==aa:bb:cc:dd:ee:ff</td><td>Traffic for one MAC</td></tr><tr><td>ping &lt;ip&gt;</td><td>Generate ICMP traffic to capture</td></tr></table></section>
 
   <div class="pager"><a href="index.html"><span class="lbl">←</span>All labs</a><a class="nx" href="netplus_lab02.html"><span class="lbl">Next lab →</span>Lab 02 · IPv4 Addressing</a></div>
 </main>
@@ -382,5 +423,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

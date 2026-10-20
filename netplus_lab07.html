@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="07">
@@ -272,7 +277,7 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
   <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>Static routes don't scale — in a big network you can't hand-maintain every path. <strong>Dynamic routing protocols</strong> let routers advertise what they know and learn from neighbors, adapting automatically when links change. You configure the three the exam cares about, on <strong>VyOS</strong>:</p><ul><li><strong>RIP</strong> — a simple <strong>distance-vector</strong> IGP that counts hops (max 15). Easy, small-scale, dated.</li><li><strong>OSPF</strong> — a <strong>link-state</strong> IGP that builds a full map and picks routes by cost. The workhorse of enterprise interior routing. You do both <strong>OSPFv2 (IPv4)</strong> and <strong>OSPFv3 (IPv6)</strong>.</li><li><strong>BGP</strong> — the <strong>path-vector</strong> protocol that routes <em>between</em> autonomous systems. It runs the Internet. You configure it for both IPv4 and IPv6.</li></ul><div class="call tip"><span class="k">IGP vs EGP</span>RIP and OSPF are <strong>interior</strong> gateway protocols — inside one organization. BGP is the <strong>exterior</strong> protocol — between organizations/ISPs (between autonomous systems).</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>GNS3</strong> with <strong>VyOS routers (R1, R2)</strong> in different autonomous systems for the BGP portion. You configure each protocol in turn and verify with <code class="inl">show</code> commands.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">RIP</p><div class="step"><h3><span class="n">1</span>Enable RIP on the connected networks</h3><div class="code"><pre data-copy="configure
@@ -303,7 +308,90 @@ commit ; save</pre></div><p>Add the IPv6 address-family and neighbor the same wa
 show ip route bgp
 show ipv6 bgp">show ip bgp
 show ip route bgp
-show ipv6 bgp</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>Protocol reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Protocol</th><th>Type</th><th>Metric</th><th>Scope</th><th>Route code</th></tr></thead><tbody><tr><td>RIP (v2)</td><td>Distance-vector IGP</td><td>Hop count (max 15)</td><td>Small interior</td><td><code class="inl">R</code></td></tr><tr><td>OSPF</td><td>Link-state IGP</td><td>Cost (bandwidth)</td><td>Enterprise interior</td><td><code class="inl">O</code></td></tr><tr><td>EIGRP</td><td>Advanced DV IGP (Cisco)</td><td>Composite</td><td>Enterprise interior</td><td><code class="inl">D</code></td></tr><tr><td>BGP</td><td>Path-vector EGP</td><td>Path attributes</td><td>Between AS / Internet</td><td><code class="inl">B</code></td></tr></tbody></table></div><dl class='ref'><dt>Autonomous System (AS)</dt><dd>A network under one administrative control, identified by an AS number — the unit BGP routes between.</dd><dt>Convergence</dt><dd>How quickly all routers agree on the topology after a change; link-state (OSPF) converges faster than distance-vector (RIP).</dd><dt>Router ID</dt><dd>A 32-bit ID that uniquely names a router within OSPF/BGP.</dd><dt>Area 0 (backbone)</dt><dd>OSPF's core area that all other areas connect to.</dd><dt>eBGP vs iBGP</dt><dd>External BGP peers sit in <em>different</em> AS numbers; internal BGP peers share the <em>same</em> AS.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>OSPF neighbors won't form</td><td>Mismatched area, subnet, or MTU between the two interfaces</td><td>Both sides need the same area and a common subnet; check <code class="inl">show ip ospf neighbor</code> for the stuck state.</td></tr><tr><td>RIP routes missing</td><td>Network not advertised, or beyond 15 hops</td><td>Add every connected network with <code class="inl">set protocols rip network</code>; RIP drops anything past 15 hops.</td></tr><tr><td>BGP stays in Idle/Active</td><td>Wrong remote-as, unreachable peer, or missing multihop</td><td>Confirm the neighbor IP is reachable and the <code class="inl">remote-as</code> matches the peer's actual AS.</td></tr><tr><td>Routes learned but no reachability</td><td>Advertised the wrong network</td><td>Advertise the networks you actually want reachable; verify with <code class="inl">show ip route &lt;proto&gt;</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Classify protocols: <strong>RIP = distance-vector</strong>, <strong>OSPF = link-state</strong>, <strong>BGP = path-vector</strong>; <strong>IGP vs EGP</strong>.</li><li>Know each protocol's <strong>metric</strong>: RIP hop count, OSPF cost, BGP path attributes.</li><li>Know <strong>BGP routes between autonomous systems</strong> and runs the Internet.</li><li>Understand <strong>convergence</strong> and why link-state converges faster than distance-vector.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Which routing protocol connects two different ISPs?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>BGP</strong> — the exterior/path-vector protocol that routes between autonomous systems.</div></div><div class="q"><p class="ask">2. Your network is 18 router-hops wide. Why is RIP a bad fit?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">RIP's maximum is <strong>15 hops</strong>; anything beyond is considered unreachable, so it can't route across the whole network.</div></div><div class="q"><p class="ask">3. What metric does OSPF use to choose a path?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Cost</strong>, derived from link bandwidth — lower cost is preferred.</div></div><div class="q"><p class="ask">4. eBGP vs iBGP — what's the distinguishing factor?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Whether the peers are in <strong>different AS numbers (eBGP)</strong> or the <strong>same AS (iBGP)</strong>.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show ip route rip</code> with an <code class="inl">R</code> route learned via RIP</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2"><code class="inl">show ip ospf neighbor</code> (adjacency up) and <code class="inl">show ip route ospf</code> with an <code class="inl">O</code> route</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><code class="inl">show ipv6 route ospf</code> for OSPFv3</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show ip bgp</code> / <code class="inl">show ip route bgp</code> with a <code class="inl">B</code> route learned via BGP</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>set protocols rip network A.B.C.D/M</td><td>Advertise a network in RIP</td></tr><tr><td>set protocols ospf area 0 network … </td><td>Enable OSPFv2 in area 0</td></tr><tr><td>set protocols ospfv3 area 0 interface ethN</td><td>Enable OSPFv3 (IPv6)</td></tr><tr><td>set protocols bgp AS neighbor X remote-as Y</td><td>Define a BGP peer</td></tr><tr><td>show ip ospf neighbor</td><td>Check OSPF adjacencies</td></tr><tr><td>show ip bgp</td><td>Check BGP table</td></tr></table></section>
+show ipv6 bgp</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology and Addressing Table</p>
+<p class="task-head">Task 2 - Routing Protocols</p>
+<p class="task-head">Task 3 - Routing Information Protocol (RIP)</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Configure RIP on R1 and R2</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Verify RIP routes</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Verify connectivity between devices</h3></div>
+<p class="task-head">Task 3.1 - View Router Interfaces and Routing Tables</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Then click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the login screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> On the Windows desktop, double-click the Lab Files folder.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the Lab Files folder, double-click the Lab 07 GNS3 Portable Project File.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> The Project window opens with Lab 07 in the Name field. Click OK to open Lab 07.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> It will take about 1 minute for Lab 07 to load. You will see the Please wait screen displaying the progress.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> The Lab 07 GNS3 network topology is now visible and matches the routing topology.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Next, start the devices in the network. In the top menu bar, click the big green arrow to start all nodes. In the Confirm Start All window, click Yes.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> All connections between devices are now green, indicating all devices have started. Notice that in the Topology Summary, all interface nodes have also turned from red to green. The GNS3 network is now ready for configuration. In the next steps, we will configure the RIP routing protocol on R1 and R2. We will then verify and test the configurations. Use the topology and addressing table for reference.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Verify Correct IP addressing on R1 and R2. a. Right-click R1, and then click the Console icon. b. After a few seconds of R1 booting up, the console displays the Welcome to Vyos banner and prompts you to login. In this lab, a Vyos router is used as R1 and R2 in the topology. Login to R1 using the following credentials: c. At the vyos@R1:~$ prompt, type show interfaces d. Notice that both interfaces eth0 and eth1 on R1 are configured with IPv4 and IPv6 addressing (1). Also view the interface descriptions (2). Validate that the settings are correct by referring back to the addressing table. e. Repeat steps 10a through 10d for R2.</h3><div class="code"><pre>Username: vyos Password: vyos</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> View R1 and R2 IPv4 and IPv6 Routing Tables. a. In R1, type show ip route b. Look at the output below. The Codes: section (1) displays the different route type that could be learned by R1. Notice the directly-connected networks (2). The C&gt;* to the left of the IP addresses indicate that these are directly-connected IPv4 networks/subnets. c. In R1, type show ipv6 route. Notice the directly-connected IPv6 networks (1). d. Repeat steps 11a through 11c for R2. The routing tables for both R1 and R2 reflect that no routing has been configured. Both static and dynamic routes are absent from the routing tables. It is important to remember that these directly connecting networks must be present in the routing table before routing is configured. They will automatically appear in the routing table after the router interfaces have been correctly configured.</h3><div class="call tip"><span class="k">Note</span><p>Also notice the fe80::/64 directly-connected link-local addresses (2).</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show ip bgp</code> / <code class="inl">show ip route bgp</code> with a <code class="inl">B</code> route learned via BGP</div><p class="task-head">Task 3.2 - Configure and Verify RIP</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Configure RIP Routing on R1. a. At the vyos@R1:~# prompt, type configure, and then press Enter. b. Configure RIP on R1 for both directly connected networks. Type set protocols 168.50.80.0/30. Note that the network command advertises the network specified which are the directly-connected networks of 192.168.10.0/24 and 168.50.80.0/30. c. Next, configure RIPng for IPv6 routing on RI. Advertise the two directly-connected IPv6 subnets on R1. Type set protocols ripng network 2000:0b32:c0e9:1::/64. Next, type set protocols ripng network 2000:0b32:c0e9:2::/64. Note that the network command advertises the network specified which are the directly-connected networks of 2000:0b32:c0e9:1::/64 and 2000:0b32:c0e9:2::/64. d. On R1, type commit, and then type save. Type exit to exit configuration mode.</h3><div class="code"><pre>rip network 192.168.10.0/24. Next, type set protocols rip network</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Configure RIP Routing on R2. a. Repeat section 3.2, steps 1a through 1d for R2. Use the directly-connected networks of 172.16.31.0/24 and 168.50.80.0/30 for IPv4, and 2000:0b32:c0e9:3::/64 and 2000:0b32:c0e9:2::/64 for IPv6.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Verify dual-stack RIP routing on R1 and R2. a. Navigate back to the R1 console, and type show ip route to view the R1 IPv4 routing table. b. Notice that the RIP route to 172.16.31.0/24 is now visible in the R1 routing table as: R&gt;* 172.16.31.0/24 [120/2] via 168.50.80.2, eth1, 00:07:13 The R&gt;* represents a RIP route. 172.16.31.0/24 is the remote destination network (LAN 2). In the [120/2] field, the 120 represents the default administrative distance and the 2 is the metric. RIP uses hop-count as its metric, meaning the destination is 1 router away. The via 168.50.80.2 means that the destination network of 172.16.31.0/24 can be reached through the next-hop IP address of 168.50.80.2. eth1 is the exit interface on R1, and 00:05:00 is the elapsed time since that RIP route was learned by R1. c. Next, type show ipv6 route to view the R1 IPv6 routing table. d. Notice the IPv6 RIP route to 2000:0b32:c0e9:3::/64 now exists in the R1 routing table. Also notice that the next-hop IPv6 address is a link-local address. e. Repeat steps 3a through 3c for R2. f. Notice that each router sees each the other's LAN in their routing table. This is called convergence.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Verify End-to End Connectivity. a. Now that both R1 and R2 routing tables are complete and convergence is evident, we will verify connectivity between LAN 1 and LAN 2. Open a console on PC1. b. Press Enter to access the PC1 prompt. c. Ping PC4 from PC1 for IPv4. At the PC1&gt; prompt, type ping 172.16.31.3, and then press Enter. d. Pings should be successful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> What would happen if the LAN 2 network on R2 went down? R2 would automatically update R1 about that failed network, and R1 would remove both these IPv4 and IPv6 LAN 2 networks from its routing table. To simulate this failure, we will disable the e1 interface on a. In the R1 console, view the current IPv4 routing table. Type show ip route, and then press Enter. Next type show ipv6 route to view the current IPv6 routing table. b. Notice that R1 has both an IPv4 and an IPv6 route to the R2 LAN 2. c. In the R2 console, type configure, and then press Enter to enter configuration mode. d. Next, type set interfaces ethernet eth1 disable to shutdown R2 eth1. e. Navigate back to the R1 console, and type show ip route to view its routing table. f. Notice that the RIP route to the R2 LAN is no longer present in the R1 routing table. g. Repeat step e above for IPv6. Type show ipv6 route h. Notice that the RIPng route to the R2 LAN is no longer present in the R1 routing table. i.     To restore network convergence, we need to re-enable the R2 eth1 interface. On R2, type delete interfaces ethernet eth1 disable. Next, type commit, and then save. j.     Since the R2 eth1 interface is back up, we can now validate if the IPv4 and IPv6 networks on LAN 2 are back in the R1 routing table. On R1, type show ip route, and then type show ipv6 route. k. Notice that the LAN 2 networks are back in the R1 routing table.</h3><div class="call tip"><span class="k">Note</span><p>R2 that connects to LAN 2. We will view the R1 routing table before and after failure. Then type commit, and then type save.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Remove RIP and RIPng from R1 and R2 to prepare for the next routing protocol configuration. a. On both routers in configuration mode, type delete protocols rip, followed by delete protocols ripng, to delete both IPv4 and IPv4 RIP configurations. Next, type commit, and then type save.</h3></div>
+<p class="task-head">Task 4 - Open Shortest Path First (OSPF)</p>
+<p class="task-head">Task 4.1 - Configure and Verify Single-Area OSPFv2</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Starting with R1, we will configure single-area OSPF, and advertise its directly-connected networks. Next, we will do the same on R2, and then we will verify OSPF routing. Finally, we will perform end-to-end connectivity testing between LAN 1 and LAN 2. a. At the R1 console in configure mode, type the following commands followed by the Enter key: •    set protocols ospf area 0 network 192.168.10.0/24 •    set protocols ospf area 0 network 168.50.80.0/30 •    set protocols ospf parameters router-id 1.1.1.1 As we did when configuring RIP, the network command advertises the directly- connected networks to the next hop router, R2. The area 0 command specifies that single-area OSPF is being configured. The router-id is a four-octet value used to identify a router running OSPF as the focal point for routing updates. In a multiaccess network such as this one where all connections are ethernet, the router with the highest router- id becomes the Designated Router (DR) in the network. The router with the second highest router-id becomes the Backup Designated Router (BDR). The BDR will assume the role of the DR only if the DR fails. b. Repeat the same steps in R2. Use R2 directly-connected networks after the network command. Use 2.2.2.2 as the R2 router-id.</h3><div class="code"><pre>•    commit
+•    save</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Since we have configured single area OSPF, we will verify operation. Remember that OSPF builds three databases (tables). First, you will learn and use the commands to view them. Next, you will verify end-to end connectivity. To view the neighbor table, the show ip ospf neighbor command is used. The link-state database (topology table) is viewed using the show ip ospf database command, and to view the routing table, use the show ip route command. Let's start with R1. a. In R1, type exit to leave configure mode. Next, type show ip ospf neighbor to view the R1 neighbor table. b. Notice the Neighbor ID (1) is the R2 router-id. The State is Full and R1 is the Backup (BDR) (2). R1's neighbor IP Address is 168.50.80.2 (3). R1's local Interface address is eth1:168.50.80.1 (4). c. Next, type show ip ospf database to view the topology table. d. Notice the R1 router ID (1), the router Link ID (2) for all the routers in the network, and the Area (Area 0.0.0.0) (3). Also, the advertising ADV Router ID (4) of 1.1.1.1 is displayed. e. Finally, to view the routing table, type show ip route f. Notice that all directly connected C&gt;* and OSPF O&gt;* learned networks are displayed (1). The graphic below displays the third route entry in the R1 routing table. This is the OSPF learned route to the 172.16.31.0/24 network (1). This is the LAN connected to R2. In square brackets, the AD and metric are displayed. Notice that the default g. Repeat the show commands in steps 2a through 2f to view the tables on R2. h. Notice the OSPF learned route to 192.168.10.0/24 which is the R1 LAN. Both R1 and i.     Next, we will verify end-to-end connectivity by pinging between LAN 1 and LAN 2 devices. Ping PC3 from PC1. From the PC1 console, type ping 172.16.31.2, and then press Enter. Notice that the pings were successful. j.     Next, ping PC2 from PC4. From the PC4 console, type ping 192.168.10.3, and then press Enter. Notice that the pings were successful.</h3><div class="code"><pre>1</pre></div><div class="call tip"><span class="k">Note</span><p>OSPF Administrative Distance (AD) of 110 (2) is displayed. R2 now have complete routing tables.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show ip ospf neighbor</code> (adjacency up) and <code class="inl">show ip route ospf</code> with an <code class="inl">O</code> route</div><div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show ip route rip</code> with an <code class="inl">R</code> route learned via RIP</div><p class="task-head">Task 4.2 - Configure and Verify Single-Area OSPFv3</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Configure OSPFv3 on R1. At the R1 console in configure mode, type the following commands followed by the Enter key: •      set protocols ospfv3 area 0 interface eth0 •      set protocols ospfv3 area 0 interface eth1 •      set protocols ospfv3 parameters router-id 1.1.1.1</h3><div class="code"><pre>•      commit
+•      save</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Configure OSPFv3 on R2. Repeat step 1 for R2 using the following parameters: •      set protocols ospfv3 area 0 interface eth1 •      set protocols ospfv3 area 0 interface eth0 •      set protocols ospfv3 parameters router-id 2.2.2.2</h3><div class="code"><pre>•      commit
+•      save</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> View the OSPFv3 routing table for R1. In R1, type exit to leave configuration mode. Next, type show ipv6 route ospf to view just OSPFv3 routes for IPv6. Notice that the R2 IPv6</h3><div class="call tip"><span class="k">Note</span><p>LAN now appears in the R1 routing table as: O&gt;* 2000:b32:C0e9:3::/64.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show ipv6 route ospf</code> for OSPFv3</div><div class="step"><h3 class="fh"><span class="n">4</span> Now view the R2 OSPFv3 routing table. In R2, type exit to leave configuration mode. Next, type show ipv6 route ospf to view just OSPFv3 routes for IPv6. Notice that the R2 IPv6 The routing tables for both routers have a route to each other's LAN. Now we will validate IPv6 connectivity from each router to their remote LANs. First, we will ping a host in the R2 LAN from R1. Next, from R2, we will ping a host in the R1 LAN. When pinging from the router, the ping replies will be continuous and will have to be interrupted. To stop the pings, you will type ctrl + c.</h3><div class="call tip"><span class="k">Note</span><p>LAN now appears in the R1 routing table as: O&gt;* 2000:b32:c0e9:1::/64.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> From R1, type ping 2000:0b32:c0e9:3::3, and then press Enter. Pings are continuous. After five ICMP replies, type ctrl + c to stop them. Notice that IPv6 pings to PC4 pings are successful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Repeat step 5 for R2. From R2, type ping 2000:0b32:c0e9:1::2, and then press Enter. After five ICMP replies, type ctrl + c to stop them. Notice that IPv6 pings to PC1 are successful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Remove all OSPFv2 and OSPFv3 configurations before moving to the next section. On both routers, type the following commands: •   delete protocols ospf •   delete protocols ospfv3</h3><div class="code"><pre>•   configure
+•   commit
+•   save</pre></div></div>
+<p class="task-head">Task 4.3 - Conclusion</p>
+<p class="task-head">Task 5 - Border Gateway Protocol (BGP)</p>
+<p class="task-head">Task 5.1 - Configure and Verify BGP for IPv4</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Configure BGP for IPv6 on R1. Type the commands below. Press Enter after each line: •    set protocols bgp 100 neighbor 168.50.80.2 ebgp-multihop 2 •    set protocols bgp 100 neighbor 168.50.80.2 remote-as 200 •    set protocols bgp 100 neighbor 168.50.80.2 update-source •    set protocols bgp 100 address-family ipv4-unicast network •    set protocols bgp 100 parameters router-id 168.50.80.1 In the BGP configuration commands, the syntax begins with set protocols bgp 100. This starts the BGP process in R1 for AS100. The 100 represents the local ASN. The neighbor 168.50.80.2 command syntax in the first three statements specifies the next-hop IP address of R1, which is the R2 eth0 address. R2 is called a peer. The ebgp-multihop 2 command specifies external BGP for 2 hops. The remote-as 200 command specifies the AS R1 is connecting to, which is AS200. The update-source 168.50.80.1 command specifies the source of routing updates, which is R1 eth1. The address-family ipv4-unicast networks. The parameters router-id 168.50.80.1 command assigns the BGP router ID for R1.</h3><div class="code"><pre>168.50.80.1
+192.168.10.0/24
+•    commit
+•    save
+network 192.168.10.0/24 command defines BGP parameters for IPv4 unicasts for remote BGP</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Repeat step 1 for R2 using the following commands and parameters. •    set protocols bgp 200 neighbor 168.50.80.1 ebgp-multihop 2 •    set protocols bgp 200 neighbor 168.50.80.1 remote-as 100 •    set protocols bgp 200 neighbor 168.50.80.1 update-source •    set protocols bgp 200 address-family ipv4-unicast network •    set protocols bgp 200 parameters router-id 168.50.80.2</h3><div class="code"><pre>168.50.80.2
+172.16.31.0/24
+•    commit
+•    save</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Now we will verify BGP configuration by viewing the tables on both routers. Starting with R1, type exit to exit configuration mode. Next, view the BGP table by typing show ip bgp, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Under Status Codes to the right (1), notice that a * represents valid routes and a &gt; represents best routes. The Networks and Next Hop (2) are displayed as well. Notice that both networks have a *&gt; (2) in front. They are both valid and best routes. The 172.16.31.0/24 network is in AS200, and is reachable via 168.50.80.2, the next hop (2). Notice that four default attributes are shown, which are Metric, Local Preference (LocPrf),</h3><div class="call tip"><span class="k">Note</span><p>Weight, and Path (3). Next, notice that 2 routes and 2 paths are displayed (4).</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Next, view the R1 IPv4 routing table to see the best routes, and if R1 has a BGP route to the network in AS200. Type show ip route, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Notice that there is a BGP route (B&gt;*) to the 172.16.31.0/24 network in AS200 reachable via the peer 168.50.80.2</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Repeat steps 3-6 on R2 to view both the BGP and routing tables.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Under Status Codes to the right (1), notice that a * represents valid routes and a &gt; represents best routes. Notice the Networks and Next Hop (2) are displayed as well. Notice that both networks have a *&gt; (2) in front. They are both valid and best routes. The 192.168.10.0/24 network is in AS100, and is reachable via 168.50.80.1, the next hop (2). Notice that four default attributes are shown, which are Metric, Local Preference (LocPrf),</h3><div class="call tip"><span class="k">Note</span><p>Weight, and Path (3). Next, notice that 2 routes and 2 paths are displayed (4).</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Now, let's verify connectivity by pinging devices from one AS to another. From the PC1 console, ping PC4. Type ping 172.16.31.3, and then press Enter. Notice that the pings are successful.</h3></div>
+<p class="task-head">Task 5.2 - Configure and Verify BGP for IPv6</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Configure BGP for IPv6 on R1. Type the commands below. Press Enter after each line: •    set protocols bgp 100 neighbor 2000:b32:c0e9:2::2 ebgp-multihop 2 •    set protocols bgp 100 neighbor 2000:b32:c0e9:2::2 remote-as 200 •    set protocols bgp 100 neighbor 2000:b32:c0e9:2::2 update-source 2000:b32:c0e9:2::1 (the syntax will wrap back to the beginning of •    set protocols bgp 100 neighbor 2000:b32:c0e9:2::2 address-family •    set protocols bgp 100 address-family ipv6-unicast network •    set protocols bgp 100 parameters router-id 168.50.80.1</h3><div class="code"><pre>line)
+ipv6-unicast
+2000:b32:c0e9:1::/64
+•    commit
+•    save</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Repeat step 1 for R2 using the following commands and parameters. •    set protocols bgp 200 neighbor 2000:b32:c0e9:2::1 ebgp-multihop 2 •    set protocols bgp 200 neighbor 2000:b32:c0e9:2::1 remote-as 100 •    set protocols bgp 200 neighbor 2000:b32:c0e9:2::1 update-source •    set protocols bgp 200 neighbor 2000:b32:c0e9:2::1 address-family •    set protocols bgp 200 address-family ipv6-unicast network •    set protocols bgp 200 parameters router-id 168.50.80.2</h3><div class="code"><pre>2000:b32:c0e9:2::2
+ipv6-unicast
+2000:b32:c0e9:3::/64
+•    commit
+•    save</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Now we will verify BGP for IPv6 configuration by viewing the tables on both routers. Starting with R1, type exit to exit configuration mode. Next, view the BGP table by typing show ipv6 bgp, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Under Status Codes to the right (1), notice that a * represents valid routes and a &gt; represents best routes. The Networks and Next Hop (2) are displayed as well. Notice that both networks have a *&gt; (2) in front. They are both valid and best routes. The 2000:b32:c0e9:3::/64 network is in AS200, and is reachable via the dynamically-assigned ipv6 link-local address of fe80::ec6:17ff:fefe:0, the next hop (2). Notice that four default attributes are shown, which are Metric, Local Preference (LocPrf), Weight, and Path (3).</h3><div class="call tip"><span class="k">Note</span><p>Next, notice that 2 routes and 2 paths are displayed (4).</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Next, view the R1 IPv4 routing table to see the best routes, and if R1 has a BGP route to the network in AS200. Type show ipv6 route, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Notice that there is a BGP route (B&gt;*) to the 2000:b32:c0e0:3::/64 network in AS200, reachable via the peer link-local address of fe80::ec6:17ff:fefe:0.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Repeat steps 3-6 on R2 to view both the BGP and routing tables.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Under Status Codes to the right (1), notice that a * represents valid routes and a &gt; represents best routes. The Networks and Next Hop (2) are displayed as well. Notice that both networks have a *&gt; (2) in front. They are both valid and best routes. The 2000:b32:c0e9:1::/64 network is in AS100, and is reachable via the dynamically-assigned ipv6 link-local address of fe80::e95:64ff:fec4:1, the next hop (2). Notice that four default attributes are shown, which are Metric, Local Preference (LocPrf), Weight, and Path (3).</h3><div class="call tip"><span class="k">Note</span><p>Next, notice that 2 routes and 2 paths are displayed (4).</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Now, let's verify connectivity by pinging from AS100 to AS200. From R1, ping a host in AS200. Type ping 2000:b32:c0e9:3::3, and then press Enter. Type ctrl+c to stop the pings. Notice that the pings are successful.</h3></div>
+<p class="task-head">Task 5.3 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> The Internet Assigned Numbers Authority (IANA)</h3><div class="code"><pre>https://www.iana.org/numbers</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> The Internet Engineering Task Force</h3><div class="code"><pre>https://datatracker.ietf.org/doc/html/rfc1771.html</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Vyos Configuration Guide</h3><div class="code"><pre>https://docs.vyos.io/en/equuleus/configuration/index.html</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>Protocol reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Protocol</th><th>Type</th><th>Metric</th><th>Scope</th><th>Route code</th></tr></thead><tbody><tr><td>RIP (v2)</td><td>Distance-vector IGP</td><td>Hop count (max 15)</td><td>Small interior</td><td><code class="inl">R</code></td></tr><tr><td>OSPF</td><td>Link-state IGP</td><td>Cost (bandwidth)</td><td>Enterprise interior</td><td><code class="inl">O</code></td></tr><tr><td>EIGRP</td><td>Advanced DV IGP (Cisco)</td><td>Composite</td><td>Enterprise interior</td><td><code class="inl">D</code></td></tr><tr><td>BGP</td><td>Path-vector EGP</td><td>Path attributes</td><td>Between AS / Internet</td><td><code class="inl">B</code></td></tr></tbody></table></div><dl class='ref'><dt>Autonomous System (AS)</dt><dd>A network under one administrative control, identified by an AS number — the unit BGP routes between.</dd><dt>Convergence</dt><dd>How quickly all routers agree on the topology after a change; link-state (OSPF) converges faster than distance-vector (RIP).</dd><dt>Router ID</dt><dd>A 32-bit ID that uniquely names a router within OSPF/BGP.</dd><dt>Area 0 (backbone)</dt><dd>OSPF's core area that all other areas connect to.</dd><dt>eBGP vs iBGP</dt><dd>External BGP peers sit in <em>different</em> AS numbers; internal BGP peers share the <em>same</em> AS.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>OSPF neighbors won't form</td><td>Mismatched area, subnet, or MTU between the two interfaces</td><td>Both sides need the same area and a common subnet; check <code class="inl">show ip ospf neighbor</code> for the stuck state.</td></tr><tr><td>RIP routes missing</td><td>Network not advertised, or beyond 15 hops</td><td>Add every connected network with <code class="inl">set protocols rip network</code>; RIP drops anything past 15 hops.</td></tr><tr><td>BGP stays in Idle/Active</td><td>Wrong remote-as, unreachable peer, or missing multihop</td><td>Confirm the neighbor IP is reachable and the <code class="inl">remote-as</code> matches the peer's actual AS.</td></tr><tr><td>Routes learned but no reachability</td><td>Advertised the wrong network</td><td>Advertise the networks you actually want reachable; verify with <code class="inl">show ip route &lt;proto&gt;</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Classify protocols: <strong>RIP = distance-vector</strong>, <strong>OSPF = link-state</strong>, <strong>BGP = path-vector</strong>; <strong>IGP vs EGP</strong>.</li><li>Know each protocol's <strong>metric</strong>: RIP hop count, OSPF cost, BGP path attributes.</li><li>Know <strong>BGP routes between autonomous systems</strong> and runs the Internet.</li><li>Understand <strong>convergence</strong> and why link-state converges faster than distance-vector.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Which routing protocol connects two different ISPs?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>BGP</strong> — the exterior/path-vector protocol that routes between autonomous systems.</div></div><div class="q"><p class="ask">2. Your network is 18 router-hops wide. Why is RIP a bad fit?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">RIP's maximum is <strong>15 hops</strong>; anything beyond is considered unreachable, so it can't route across the whole network.</div></div><div class="q"><p class="ask">3. What metric does OSPF use to choose a path?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Cost</strong>, derived from link bandwidth — lower cost is preferred.</div></div><div class="q"><p class="ask">4. eBGP vs iBGP — what's the distinguishing factor?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">Whether the peers are in <strong>different AS numbers (eBGP)</strong> or the <strong>same AS (iBGP)</strong>.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">show ip route rip</code> with an <code class="inl">R</code> route learned via RIP</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2"><code class="inl">show ip ospf neighbor</code> (adjacency up) and <code class="inl">show ip route ospf</code> with an <code class="inl">O</code> route</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><code class="inl">show ipv6 route ospf</code> for OSPFv3</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4"><code class="inl">show ip bgp</code> / <code class="inl">show ip route bgp</code> with a <code class="inl">B</code> route learned via BGP</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>set protocols rip network A.B.C.D/M</td><td>Advertise a network in RIP</td></tr><tr><td>set protocols ospf area 0 network … </td><td>Enable OSPFv2 in area 0</td></tr><tr><td>set protocols ospfv3 area 0 interface ethN</td><td>Enable OSPFv3 (IPv6)</td></tr><tr><td>set protocols bgp AS neighbor X remote-as Y</td><td>Define a BGP peer</td></tr><tr><td>show ip ospf neighbor</td><td>Check OSPF adjacencies</td></tr><tr><td>show ip bgp</td><td>Check BGP table</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab06.html"><span class="lbl">← Previous lab</span>Lab 06 · Routing Technologies</a><a class="nx" href="netplus_lab08.html"><span class="lbl">Next lab →</span>Lab 08 · Ethernet Switching Technologies</a></div>
 </main>
@@ -410,5 +498,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

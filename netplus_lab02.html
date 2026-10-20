@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="02">
@@ -272,12 +277,83 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
   <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>An <strong>IPv4 address</strong> is a 32-bit number in dotted-decimal (e.g. <code class="inl">192.168.1.50</code>). A <strong>subnet mask</strong> (e.g. <code class="inl">255.255.255.0</code>, or <code class="inl">/24</code>) splits it into a <strong>network</strong> part and a <strong>host</strong> part. A device needs an address, a mask, a <strong>default gateway</strong> (the way off its own subnet), and a <strong>DNS server</strong> to actually use the network.</p><p>You'll configure addressing two ways — automatically with <strong>DHCP</strong> and by hand as <strong>static</strong> — on <strong>both Windows and Linux</strong>, then confirm each with verification commands. Doing it on both OSes is the point: the exam expects you to work in either.</p><div class="call tip"><span class="k">DHCP vs static, in one line</span>DHCP = the pfSense server hands out a lease automatically; static = you type every value yourself. Static is for servers and infrastructure; DHCP is for everything else.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>pfSense</strong> is the DHCP and DNS server. <strong>WinOS</strong> and <strong>MintOS</strong> are the clients you configure. You'll move the same machine between DHCP and static to see both paths.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Windows — DHCP then static</p><div class="step"><h3><span class="n">1</span>Enable DHCP (Windows)</h3><p>In <strong>Network Connections → Adapter → Properties → IPv4</strong>, choose <em>Obtain an IP address automatically</em>. Then confirm the lease from a command prompt:</p><div class="code"><pre data-copy="ipconfig /all">ipconfig /all</pre></div><p>Look for <strong>DHCP Enabled: Yes</strong> and a <strong>DHCP Server</strong> address. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">2</span>Renew the lease if needed</h3><div class="code"><pre data-copy="ipconfig /release
 ipconfig /renew">ipconfig /release
-ipconfig /renew</pre></div></div><div class="step"><h3><span class="n">3</span>Switch to static (Windows)</h3><p>Back in the IPv4 properties, choose <em>Use the following IP address</em> and enter the address, mask, gateway, and DNS from your lab's addressing table. Verify:</p><div class="code"><pre data-copy="ipconfig /all">ipconfig /all</pre></div><p>Then prove it still reaches the gateway. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 192.168.1.254">ping 192.168.1.254</pre></div></div><p class="task-head">Linux (Mint) — DHCP then static</p><div class="step"><h3><span class="n">1</span>View current addressing</h3><div class="code"><pre data-copy="ip address show">ip address show</pre></div></div><div class="step"><h3><span class="n">2</span>DHCP on Linux</h3><p>The lab uses the Network settings GUI (or <code class="inl">dhclient</code> from a terminal) to request a lease, then verifies with <code class="inl">ip address show</code> and a ping to the gateway.</p></div><div class="step"><h3><span class="n">3</span>Static on Linux</h3><p>Set the address/mask/gateway/DNS in Network settings, apply, and verify the same way. Confirm connectivity: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping -c 4 172.16.1.254">ping -c 4 172.16.1.254</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>Addressing reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Class / range</th><th>CIDR</th><th>Typical use</th></tr></thead><tbody><tr><td>10.0.0.0 – 10.255.255.255</td><td>/8</td><td>Private (RFC 1918), large networks</td></tr><tr><td>172.16.0.0 – 172.31.255.255</td><td>/12</td><td>Private (RFC 1918), medium networks</td></tr><tr><td>192.168.0.0 – 192.168.255.255</td><td>/16</td><td>Private (RFC 1918), home/small office</td></tr><tr><td>169.254.0.0 – 169.254.255.255</td><td>/16</td><td>APIPA — self-assigned when DHCP fails</td></tr><tr><td>127.0.0.0</td><td>/8</td><td>Loopback (127.0.0.1 = localhost)</td></tr></tbody></table></div><dl class='ref'><dt>Subnet mask</dt><dd>Marks which bits are network vs host. <code class="inl">255.255.255.0</code> = /24.</dd><dt>Default gateway</dt><dd>The router address a host sends traffic to when the destination is on another subnet.</dd><dt>APIPA (169.254.x.x)</dt><dd>A link-local address a host assigns itself when it can't reach a DHCP server — a sign DHCP failed.</dd><dt>Lease</dt><dd>The time-limited assignment DHCP gives a client; <code class="inl">ipconfig /renew</code> requests a new one.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Got a <code class="inl">169.254.x.x</code> address</td><td>DHCP server unreachable — client self-assigned APIPA</td><td>Check the link, then <code class="inl">ipconfig /release</code> + <code class="inl">/renew</code>; confirm pfSense DHCP is running.</td></tr><tr><td>Ping to gateway fails after static config</td><td>Wrong mask or gateway typed</td><td>Re-check every field against the addressing table; a wrong mask breaks the whole subnet calc.</td></tr><tr><td>Internet fails but local pings work</td><td>Missing or wrong DNS / gateway</td><td>Set a valid DNS server and the correct default gateway.</td></tr><tr><td>Linux change didn't stick</td><td>Applied in the wrong place or not committed</td><td>Use Network settings → apply, then re-verify with <code class="inl">ip address show</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Recognize the <strong>RFC 1918 private ranges</strong> and <strong>APIPA</strong> on sight — extremely common exam items.</li><li>Know the four values a host needs: <strong>IP, mask, gateway, DNS</strong>.</li><li>A <code class="inl">169.254.x.x</code> address is the exam's signal for <strong>'DHCP isn't working.'</strong></li><li>Know both toolsets: Windows <code class="inl">ipconfig</code> family and Linux <code class="inl">ip address</code> / <code class="inl">ifconfig</code>.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. A host shows 169.254.10.5. What does that tell you?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">It's an <strong>APIPA</strong> address — the host failed to get a DHCP lease and self-assigned. Troubleshoot the link and the DHCP server.</div></div><div class="q"><p class="ask">2. What does /24 mean as a mask?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The first <strong>24 bits are network</strong> (255.255.255.0), leaving 8 bits (254 usable hosts) for the host portion.</div></div><div class="q"><p class="ask">3. Which command shows the DHCP server and lease on Windows?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><code class="inl">ipconfig /all</code> — it lists the DHCP server, lease times, gateway, and DNS.</div></div><div class="q"><p class="ask">4. Why give a server a static address instead of DHCP?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">So its address never changes — clients and DNS records depend on it staying put.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">ipconfig /all</code> on Windows showing a <strong>DHCP</strong> lease (DHCP Enabled: Yes + DHCP Server)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2"><code class="inl">ipconfig /all</code> after switching to <strong>static</strong> (DHCP Enabled: No)</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">Successful <strong>ping to the gateway</strong> from Windows</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">Linux <code class="inl">ip address show</code> with your configured address, plus a successful gateway ping</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>ipconfig /all</td><td>Win: full addressing incl. DHCP/DNS</td></tr><tr><td>ipconfig /release</td><td>Win: drop DHCP lease</td></tr><tr><td>ipconfig /renew</td><td>Win: request new DHCP lease</td></tr><tr><td>ip address show</td><td>Linux: show interface addressing</td></tr><tr><td>ping -c 4 &lt;ip&gt;</td><td>Linux: send 4 pings</td></tr><tr><td>ping &lt;ip&gt;</td><td>Win: continuous until Ctrl+C</td></tr></table></section>
+ipconfig /renew</pre></div></div><div class="step"><h3><span class="n">3</span>Switch to static (Windows)</h3><p>Back in the IPv4 properties, choose <em>Use the following IP address</em> and enter the address, mask, gateway, and DNS from your lab's addressing table. Verify:</p><div class="code"><pre data-copy="ipconfig /all">ipconfig /all</pre></div><p>Then prove it still reaches the gateway. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 192.168.1.254">ping 192.168.1.254</pre></div></div><p class="task-head">Linux (Mint) — DHCP then static</p><div class="step"><h3><span class="n">1</span>View current addressing</h3><div class="code"><pre data-copy="ip address show">ip address show</pre></div></div><div class="step"><h3><span class="n">2</span>DHCP on Linux</h3><p>The lab uses the Network settings GUI (or <code class="inl">dhclient</code> from a terminal) to request a lease, then verifies with <code class="inl">ip address show</code> and a ping to the gateway.</p></div><div class="step"><h3><span class="n">3</span>Static on Linux</h3><p>Set the address/mask/gateway/DNS in Network settings, apply, and verify the same way. Confirm connectivity: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping -c 4 172.16.1.254">ping -c 4 172.16.1.254</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Configure and Verify DHCPv4 in Windows</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, then click Send CTRL+ALT+DEL to the get to the log in screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the Windows search bar, type Control Panel and then click the Control Panel App.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In Control Panel, click the Network and Internet icon, then click Network and Sharing Center.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> In the Network and Sharing Center, click Change adapter settings.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> This will bring you to the Network Connections page. Here you can view all currently installed network adapters (NICs). Notice there is one Ethernet adapter labeled as Ethernet0 (1) for Network 3 (can be a different number). It is a wired connection as indicated by the plug symbol under the PC icon (2).</h3><div class="call tip"><span class="k">Note</span><p>Right-click the Ethernet0 icon, and then click Properties.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Notice the Ethernet0 Properties (1) window is displayed. There are two versions of the Internet Protocol, IPv4 (2) and IPv6 (3). Both of these versions have properties that can be viewed and modified here.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Let's explore the IPv4 properties. Click the Internet Protocol Version 4 icon to select, then click the Properties button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> The Internet Protocol Version 4 (TCP/IPv4) Properties window displays the current IP address configuration on Ethernet0. a. Document the current IPv4 configuration settings. You will need these later on in the lab. Subnet mask: _____________________ Default gateway: _____________________ Preferred DNS server: _____________________ Alternate DNS server: _____________________ These are static settings, meaning they were manually configured by a user. Static addressing is useful when you want a device to keep the same address configuration even if the device is rebooted. Important key devices on a network should always have statically- assigned IP addresses. Examples of key devices include routers, switches, firewalls, printers, wireless access points, servers and admin devices.</h3><div class="code"><pre>IP address: _____________________</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> Now we will set the Ethernet0 connection to obtain IP addresses dynamically from a DHCPv4 server. a. Click the radial buttons next to Obtain an IP address automatically and Obtain DNS server address automatically. Next, click OK. b. In the Ethernet0 Properties window, click Close. Minimize the Network Connections window. Close the Network and Sharing Center window.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> In step 9, the Ethernet0 adapter was set to obtain IPv4 addresses automatically from a a. In the Windows search bar, type cmd. Click the Command Prompt icon. b. In the Command Prompt window, type ipconfig and press Enter. Notice that there is an IPv4 Address, Subnet Mask, and Default Gateway assigned to Ethernet0. There is also an IPv6 Address, Link-local IPv6 Address, and Default Gateway assigned to Ethernet0. These addresses are automatically assigned. We will discuss IPv6 in the next lab. c. The ipconfig command does not indicate whether the addressing on Ethernet0 was statically or dynamically assigned. To validate this, we need to use an additional parameter with the ipconfig command. In the Windows Command Prompt, type ipconfig/all. d. The /all option added to ipconfig allows all IP addressing parameters to be displayed. Notice the following: The Physical Address (1), also known as a Media Access Control (MAC) address, is a unique hardware address burned into the NIC card (Ethernet0) adapter. No two devices can have the same MAC address. Think of a MAC address as the name of the computer, and the IP address as the location of the computer on a network. DHCP Enabled is Yes (2), meaning that this adapter is Expires (3) shows the date and time when these IPv4 parameters were leased, and the DHCP Server address of 192.168.1.254 (4) is displayed.</h3><div class="code"><pre>set to receive IPv4 parameters from a DHCP server. Lease Obtained and Lease</pre></div><div class="call tip"><span class="k">Note</span><p>DHCP server. To verify that this worked, we need to use a utility from command prompt. The ipconfig command displays the current IP configuration for Ethernet adapter Ethernet0.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">ipconfig /all</code> after switching to <strong>static</strong> (DHCP Enabled: No)</div><div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">ipconfig /all</code> on Windows showing a <strong>DHCP</strong> lease (DHCP Enabled: Yes + DHCP Server)</div><p class="task-head">Task 1.1 - Testing DHCPv4 in Windows</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> From Windows Command Prompt, type ipconfig/release then press Enter. Notice that all IPv4 configuration is gone. It has been released back to the DHCPv4 server in our network.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Successful <strong>ping to the gateway</strong> from Windows</div><div class="step"><h3 class="fh"><span class="n">2</span> To request a new lease of IPv4 address configuration from the DHCP server, from Windows Command Prompt, type ipconfig/renew, then press Enter. After a few seconds, a new lease of IPv4 configuration appears.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> From Windows Command Prompt, type ipconfig/all to view the full IP address configuration leased from the DHCP server. Notice that the same IPv4 address (1) was leased from the DHCP server. The only difference is the time the lease (2) was obtained. DHCP will try to allocate the same IP address to the host machine requesting it.</h3></div>
+<p class="task-head">Task 1.2 - DHCPv4 Conclusion</p>
+<p class="task-head">Task 3 - Static IPv4 Addressing in Windows</p>
+<p class="task-head">Task 3.1 - Configure and Verify Static IPv4 Addressing in Windows</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Click the Network Connections icon in the Windows Taskbar to restore.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Right-click the Ethernet0 icon, and then click Properties.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> In the Ethernet0 Properties window, Click the Internet Protocol Version 4 icon to select it, and then click the Properties button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> Notice that the Internet Protocol Version 4 (TCP/IPv4) Properties window displays the previously configured automatic settings for DHCP. These are Obtain an IP address automatically (1), and Obtain DNS server address automatically (2).</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Next, we will now configure static addressing on the Ethernet0 network adapter. Click the radial button next to Use the following IP Address. Refer back to Section 2.1, step 8a, displaying the previous IP configuration settings you documented.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Type in the parameters for: IP address, Subnet mask, Default gateway, Preferred DNS server and Alternate DNS server. Click OK.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the Ethernet0 Properties window, click Close. Since the Ethernet0 adapter is now configured with static IPv4 addressing, we need to verify that the settings were applied. Just as the DHCP settings were validated using command prompt, we will do the same to verify static configuration. Navigate back to the Windows Command prompt.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> In the Command Prompt window, type ipconfig/all and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Verify that the Windows IP Configuration for Ethernet adapter Ethernet0 matches what you configured in step 6. Validate that the IPv4 Address, Subnet Mask, Default Gateway, and DNS</h3><div class="call tip"><span class="k">Note</span><p>Servers are correct. Close all open windows.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Linux <code class="inl">ip address show</code> with your configured address, plus a successful gateway ping</div><p class="task-head">Task 3.2 - Testing IPv4 Connectivity in Windows</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> From the WinOS Command Prompt, type ipconfig/all to view the Windows IP Configuration for Ethernet0. Locate the primary IPv4 DNS Server address of 192.168.1.254.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Ping the DNS Server IP address by typing ping followed by the IP address of the DNS Server.</h3><div class="call tip"><span class="k">Note</span><p>Note that there is a space between ping and the IP address.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Press Enter. You should see four ICMP Echo replies from 192.168.1.254. The word reply means that the ping packet successfully reached the destination, and the destination replied back to the source. In this example, the source computer is the device sending the pings, and the destination is the device receiving the pings, then replying back to the source.</h3></div>
+<p class="task-head">Task 3.3 - Windows IPv4 Addressing Conclusion</p>
+<p class="task-head">Task 4 - DHCPv4 Addressing in Linux</p>
+<p class="task-head">Task 4.1 - Configure and Verify DHCPv4 Addressing in Linux</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the MintOS machine. If prompted for login credentials, use the following: Username:sysadmin Password: NDGlabpass123!</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> There are several ways in Linux to do this. We can use the GUI, or we can use the Terminal. We will explore both ways.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> From the Linux GUI, click the sysadmin icon in the bottom left Taskbar.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the search bar, type Network. Next, click Advanced Network Configuration</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> The Network Connections window opens. Double-click the Wired connection 1 icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> In the Editing Wired connection 1 window, click IPv4 Settings. Notice that an IPv4 Address (1), Netmask (2) (Subnet Mask), Gateway (3) (Default Gateway), and DNS servers (4) are displayed. The Method is Manual (5) meaning that these IPv4 parameters are statically configured. Also notice that there is a tab for viewing IPv6 Settings (6).</h3><div class="code"><pre>1</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Close the Editing Wired connection 1 window, and then minimize the Network Connections window. Alternatively, the Ethernet network connection configuration for Wired connection 1 can be viewed from the Taskbar. Right-click the Ethernet network connection icon on the bottom right of the Linux Taskbar.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Click Connection Information to view the current configuration for Wired connection 1.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Under the General heading, notice the Interface name Ethernet (ens160) (1), the Hardware (or MAC) Address (2), Speed (3). Also view the current IPv4 (4) configuration. IPv6 (5) configuration is also listed. a. Document the current IPv4 configuration settings. You will need these later on in the lab. Subnet mask: _____________________ Default Route: _____________________ Primary DNS: _____________________ Secondary DNS: _____________________</h3><div class="code"><pre>1
+IP Address: _____________________</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Close the Connection Information window. Finally, we will use the Linux Terminal to view the current IP configuration. On the bottom left of the Linux Taskbar, click the Terminal Emulator icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> The Terminal - sysadmin@MintOS window opens. To view current IP configuration, type ifconfig at the prompt, and then press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">12</span> The current configuration is displayed. Notice that both IPv4 and IPv6 addresses are displayed as inet (1) and inet6 (2). Observe that the netmask (3) is written in dotted decimal 255.255.255.0.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">13</span> Alternatively, you can use the ip a command to view the current IP configuration for both IPv4 and IPv6 for the ens160 ethernet connection. Type ip a in the Terminal. View the IPv4 configuration. Notice the inet address is followed by the prefix length of /24, which represents the netmask of 255.255.255.0</h3></div>
+<div class="step"><h3 class="fh"><span class="n">14</span> Now we will configure the ens160 ethernet connection to obtain IP addresses dynamically from a DHCPv4 server. There are several ways to do this in Linux. We will be using the a. Click the Network Connections icon on the bottom left Taskbar to restore. b. In the Network Connections window, double-click Wired connection 1. c. In the Editing Wired connection 1 window, click IPv4 Settings. d. Press the Tab key until the Address field is highlighted under Addresses, and then click Delete. e. Press the Tab key to navigate to the DNS servers field, and then press the delete key on your keyboard to remove the DNS servers addresses. f. In the Method field, click the down arrow and select Automatic (DHCP), and then click g. Next, we need to reset the Network Connection to remove the static IPv4 configuration. Right-click the Ethernet network connection icon on the bottom right of the Linux Taskbar. h. Uncheck the box next to Enable Networking. You will get a message saying Network disconnected. i.   Notice an X now appears next to the Ethernet network connection icon. Right-click the Ethernet network connection icon again, and then click the Enable Networking box to re-enable the network connection. j.   Next, we will verify that the ens160 ethernet connection obtained IPv4 addressing automatically via DHCP. Navigate back to the Terminal and type ip a to view IP configuration on ens160. Notice the new inet address of 172.16.1.100/24 (1), and it is a dynamic (2) address. k. Alternatively, to verify, right-click the Ethernet network connection icon on the bottom right of the Linux Taskbar, and then click Connection Information. l.   Under IPv4, notice the new parameters obtained from the DHCP server. m. Close the Connection Information window.</h3><div class="call tip"><span class="k">Note</span><p>Advanced Network Configuration utility in the Linux GUI. Save. Minimize the Network Connections window.</p></div></div>
+<p class="task-head">Task 4.2 - Testing DHCPv4 in Linux</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Type the command sudo dhclient -r. The sudo (Superuser do) command elevates privileges to perform specific commands in Linux. You will be prompted for a sysadmin password. Type NDGlabpass123! as the password.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Re-type the ip a command. Notice that there is no IPv4 (inet) address assigned to ens160. It has been released back into the pool of addresses in the DHCPv4 server. There are just IPv6 addresses (inet6).</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> The sudo dhclient command in Linux requests and/or renews an IPv4 address from a DHCP server. Type the command sudo dhclient. (If a Failed to try-restart message appears, ignore it). Type ip a to view the inet configuration on ens160. Notice that an inet IPv4 address of 172.16.1.101/24 was dynamically leased.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> To view the Default route (gateway) in Linux, type ip route show default.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Minimize the Terminal window.</h3></div>
+<p class="task-head">Task 5 - Static IPv4 Addressing in Linux</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Click the Network Connections icon in the Linux Taskbar to restore.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Double-click Wired connection 1.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> In the Editing Wired connection 1 window, click IPv4 Settings.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the Method drop down box, select Manual, and then click the Add button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> From Section 4.1, step 9a, type in the static values for Address, Netmask, Gateway, and DNS servers. Press the Tab key to move between the fields. Click the DNS Servers text box and enter the DNS addresses. Add a comma between the primary and secondary DNS servers. Next click Save.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Reset the Network connection as before by right clicking the Ethernet network connection "Wired connection 1" on the Linux Taskbar. Uncheck the Enable Networking box. Right-click the Ethernet network connection "Wired connection 1" again, and then check the Enable</h3><div class="call tip"><span class="k">Note</span><p>Networking box to re-enable the connection.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> In the MintOS Terminal, type ip a or ifconfig to validate that these settings were applied.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Notice that the static inet IPv4 address is 172.16.1.35/24 on ens160.</h3></div>
+<p class="task-head">Task 5.2 - Testing IPv4 Connectivity in Linux</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> From the Linux Terminal, ping the IPv4 Default route at 172.16.1.254. Type ping 172.16.1.254 and then press Enter. The pings should be successful.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Notice that unlike Windows, the pings are continuous. To stop the process, press the ctrl + c keys simultaneously.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Close all open windows.</h3></div>
+<p class="task-head">Task 5.2 - Linux IPv4 Addressing Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Linux Mint</h3><div class="code"><pre>https://linuxmint.com/documentation.php</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>Addressing reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Class / range</th><th>CIDR</th><th>Typical use</th></tr></thead><tbody><tr><td>10.0.0.0 – 10.255.255.255</td><td>/8</td><td>Private (RFC 1918), large networks</td></tr><tr><td>172.16.0.0 – 172.31.255.255</td><td>/12</td><td>Private (RFC 1918), medium networks</td></tr><tr><td>192.168.0.0 – 192.168.255.255</td><td>/16</td><td>Private (RFC 1918), home/small office</td></tr><tr><td>169.254.0.0 – 169.254.255.255</td><td>/16</td><td>APIPA — self-assigned when DHCP fails</td></tr><tr><td>127.0.0.0</td><td>/8</td><td>Loopback (127.0.0.1 = localhost)</td></tr></tbody></table></div><dl class='ref'><dt>Subnet mask</dt><dd>Marks which bits are network vs host. <code class="inl">255.255.255.0</code> = /24.</dd><dt>Default gateway</dt><dd>The router address a host sends traffic to when the destination is on another subnet.</dd><dt>APIPA (169.254.x.x)</dt><dd>A link-local address a host assigns itself when it can't reach a DHCP server — a sign DHCP failed.</dd><dt>Lease</dt><dd>The time-limited assignment DHCP gives a client; <code class="inl">ipconfig /renew</code> requests a new one.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Got a <code class="inl">169.254.x.x</code> address</td><td>DHCP server unreachable — client self-assigned APIPA</td><td>Check the link, then <code class="inl">ipconfig /release</code> + <code class="inl">/renew</code>; confirm pfSense DHCP is running.</td></tr><tr><td>Ping to gateway fails after static config</td><td>Wrong mask or gateway typed</td><td>Re-check every field against the addressing table; a wrong mask breaks the whole subnet calc.</td></tr><tr><td>Internet fails but local pings work</td><td>Missing or wrong DNS / gateway</td><td>Set a valid DNS server and the correct default gateway.</td></tr><tr><td>Linux change didn't stick</td><td>Applied in the wrong place or not committed</td><td>Use Network settings → apply, then re-verify with <code class="inl">ip address show</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li>Recognize the <strong>RFC 1918 private ranges</strong> and <strong>APIPA</strong> on sight — extremely common exam items.</li><li>Know the four values a host needs: <strong>IP, mask, gateway, DNS</strong>.</li><li>A <code class="inl">169.254.x.x</code> address is the exam's signal for <strong>'DHCP isn't working.'</strong></li><li>Know both toolsets: Windows <code class="inl">ipconfig</code> family and Linux <code class="inl">ip address</code> / <code class="inl">ifconfig</code>.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. A host shows 169.254.10.5. What does that tell you?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">It's an <strong>APIPA</strong> address — the host failed to get a DHCP lease and self-assigned. Troubleshoot the link and the DHCP server.</div></div><div class="q"><p class="ask">2. What does /24 mean as a mask?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The first <strong>24 bits are network</strong> (255.255.255.0), leaving 8 bits (254 usable hosts) for the host portion.</div></div><div class="q"><p class="ask">3. Which command shows the DHCP server and lease on Windows?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><code class="inl">ipconfig /all</code> — it lists the DHCP server, lease times, gateway, and DNS.</div></div><div class="q"><p class="ask">4. Why give a server a static address instead of DHCP?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">So its address never changes — clients and DNS records depend on it staying put.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">ipconfig /all</code> on Windows showing a <strong>DHCP</strong> lease (DHCP Enabled: Yes + DHCP Server)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2"><code class="inl">ipconfig /all</code> after switching to <strong>static</strong> (DHCP Enabled: No)</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3">Successful <strong>ping to the gateway</strong> from Windows</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">Linux <code class="inl">ip address show</code> with your configured address, plus a successful gateway ping</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>ipconfig /all</td><td>Win: full addressing incl. DHCP/DNS</td></tr><tr><td>ipconfig /release</td><td>Win: drop DHCP lease</td></tr><tr><td>ipconfig /renew</td><td>Win: request new DHCP lease</td></tr><tr><td>ip address show</td><td>Linux: show interface addressing</td></tr><tr><td>ping -c 4 &lt;ip&gt;</td><td>Linux: send 4 pings</td></tr><tr><td>ping &lt;ip&gt;</td><td>Win: continuous until Ctrl+C</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab01.html"><span class="lbl">← Previous lab</span>Lab 01 · OSI Model and Encapsulation Concepts</a><a class="nx" href="netplus_lab03.html"><span class="lbl">Next lab →</span>Lab 03 · IPv6 Addressing</a></div>
 </main>
@@ -384,5 +460,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>

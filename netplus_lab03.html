@@ -235,6 +235,11 @@ footer .program{color:var(--ink-soft);font-weight:600}
   .code .cmt{color:#555}
   a{color:#000;text-decoration:underline}
 }
+
+#fullsteps .step h3.fh{font-weight:600;font-size:.95rem;line-height:1.5;margin:0;display:block}
+#fullsteps .step h3.fh .n{margin-right:.5rem}
+#fullsteps .shotmark{margin:.55rem 0 0;padding:.5rem .7rem;border-left:3px solid var(--accent);background:var(--panel-2);border-radius:8px;font-size:.88rem;color:var(--ink)}
+#fullsteps .shotmark b{color:var(--accent)}
 </style>
 </head>
 <body data-lab="03">
@@ -272,10 +277,47 @@ footer .program{color:var(--ink-soft);font-weight:600}
 
   <nav class="toc" aria-label="On this page">
     <h2>On this page</h2>
-    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
+    <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
-  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>IPv4's ~4 billion addresses ran out. <strong>IPv6</strong> is 128 bits — about 340 undecillion addresses — written as eight hex groups, e.g. <code class="inl">2001:050A:9E52:0D65:0000:000A:1234:CEF2</code>. There's no subnet mask; the <strong>prefix length</strong> (usually <code class="inl">/64</code>) marks the network portion. The first 64 bits are the network, the last 64 the host.</p><p>You configure a host for IPv6 two ways — <strong>DHCPv6</strong> (automatic) and <strong>static</strong> — then verify with IPv6-aware commands. pfSense provides the DHCPv6 and DNS services; WinOS is the client.</p><div class="call tip"><span class="k">Compression rules you must know</span>Drop leading zeros in each group (<code class="inl">00A</code> → <code class="inl">A</code>), and replace <em>one</em> run of all-zero groups with <code class="inl">::</code>. You may use <code class="inl">::</code> only once per address.</div><div class="call tip"><span class="k">Address types at a glance</span><strong>Link-local</strong> (<code class="inl">fe80::/10</code>) is auto-configured on every IPv6 interface and used on the local link only. <strong>Global unicast</strong> (<code class="inl">2000::/3</code>) is the routable, Internet-facing kind.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>pfSense</strong> serves DHCPv6 and DNS; <strong>WinOS</strong> is the DHCP/IPv6 client you configure and test.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Task 1 — DHCPv6 on Windows</p><div class="step"><h3><span class="n">1</span>Enable IPv6 automatic addressing</h3><p>In the adapter's <strong>IPv6</strong> properties, select <em>Obtain an IPv6 address automatically</em> and <em>Obtain DNS server address automatically</em>. Apply.</p></div><div class="step"><h3><span class="n">2</span>Verify the assigned address</h3><div class="code"><pre data-copy="ipconfig /all">ipconfig /all</pre></div><p>You'll see a <strong>link-local</strong> (<code class="inl">fe80::…%&lt;zoneid&gt;</code>) always present, and a <strong>global</strong> address if DHCPv6 handed one out. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">3</span>Test DHCPv6 connectivity</h3><div class="code"><pre data-copy="ping 2000:9b32:c0e9:a::1">ping 2000:9b32:c0e9:a::1</pre></div></div><p class="task-head">Task 2 — Static IPv6 on Windows</p><div class="step"><h3><span class="n">1</span>Enter a static IPv6 address</h3><p>Switch the IPv6 properties to <em>Use the following IPv6 address</em> and enter the address, <strong>prefix length</strong> (e.g. <code class="inl">64</code>), <strong>default gateway</strong>, and DNS from the addressing table. Apply.</p></div><div class="step"><h3><span class="n">2</span>Verify and test</h3><div class="code"><pre data-copy="ipconfig /all">ipconfig /all</pre></div><p>Then confirm reachability over IPv6. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 2000:9b32:c0e9:a::1">ping 2000:9b32:c0e9:a::1</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="reference"><h2>IPv6 reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Prefix</th><th>Type</th><th>Meaning</th></tr></thead><tbody><tr><td><code class="inl">2000::/3</code></td><td>Global unicast</td><td>Routable, Internet-facing (like a public IPv4)</td></tr><tr><td><code class="inl">fe80::/10</code></td><td>Link-local</td><td>Auto-configured, local link only, never routed</td></tr><tr><td><code class="inl">fc00::/7</code></td><td>Unique local (ULA)</td><td>Private, site-internal (like RFC 1918)</td></tr><tr><td><code class="inl">ff00::/8</code></td><td>Multicast</td><td>One-to-many; replaces IPv4 broadcast</td></tr><tr><td><code class="inl">::1/128</code></td><td>Loopback</td><td>Equivalent of 127.0.0.1</td></tr><tr><td><code class="inl">::/0</code></td><td>Default route</td><td>All destinations</td></tr></tbody></table></div><dl class='ref'><dt>Prefix length</dt><dd>The IPv6 equivalent of a subnet mask; <code class="inl">/64</code> = first 64 bits are the network.</dd><dt>SLAAC</dt><dd>Stateless Address Autoconfiguration — a host builds its own address from the router's advertised prefix, no DHCP needed.</dd><dt>EUI-64</dt><dd>A way to derive the 64-bit host portion from the interface MAC address.</dd><dt>Zone ID</dt><dd>The <code class="inl">%12</code>-style suffix on a link-local address identifying which interface it belongs to.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Only a <code class="inl">fe80::</code> address appears</td><td>No DHCPv6/RA received — only link-local auto-configured</td><td>Confirm pfSense DHCPv6 is enabled; link-local alone can't reach other subnets.</td></tr><tr><td>Ping to IPv6 gateway fails</td><td>Wrong prefix length or gateway</td><td>Re-check the prefix (usually /64) and the gateway address.</td></tr><tr><td><code class="inl">::</code> used twice in an address</td><td>Invalid compression</td><td><code class="inl">::</code> may appear only once; expand one of the zero runs back to full groups.</td></tr><tr><td>Pinging link-local fails without zone</td><td>Windows needs the zone index</td><td>Append the zone ID, e.g. <code class="inl">ping fe80::1%12</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li><strong>Compress and expand</strong> IPv6 addresses correctly — a guaranteed exam skill.</li><li>Recognize <strong>link-local (fe80::)</strong>, <strong>global (2000::/3)</strong>, <strong>ULA (fc00::/7)</strong>, <strong>loopback (::1)</strong>.</li><li>Know <strong>/64</strong> as the standard prefix and that IPv6 uses <strong>prefix length</strong>, not a dotted mask.</li><li>Know <strong>SLAAC</strong> vs <strong>DHCPv6</strong> as the two autoconfig paths, and that <strong>multicast replaces broadcast</strong> in IPv6.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Compress 2001:0DB8:0000:0000:0000:00A1:0000:0001.</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><code class="inl">2001:db8::a1:0:1</code>. Leading zeros dropped; the single longest zero run collapsed to <code class="inl">::</code>.</div></div><div class="q"><p class="ask">2. A Windows host has only an fe80:: address. What's missing?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A <strong>global or ULA</strong> address — it got no DHCPv6 lease or Router Advertisement, so only the auto link-local exists. It can't leave the local link.</div></div><div class="q"><p class="ask">3. What replaces IPv4 broadcast in IPv6?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Multicast</strong> (ff00::/8). IPv6 has no broadcast at all.</div></div><div class="q"><p class="ask">4. What does /64 tell you?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The first <strong>64 bits are the network/subnet prefix</strong>; the last 64 are the host (interface) ID.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">ipconfig /all</code> showing the <strong>DHCPv6-assigned</strong> IPv6 address (plus link-local)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">Successful <strong>ping over IPv6</strong> to the gateway while on DHCPv6</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><code class="inl">ipconfig /all</code> showing your <strong>static IPv6</strong> address and prefix</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">Successful <strong>ping over IPv6</strong> after static configuration</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>ipconfig /all</td><td>Show IPv6 address, link-local, DHCPv6 server</td></tr><tr><td>ping &lt;ipv6&gt;</td><td>Test IPv6 reachability</td></tr><tr><td>ping fe80::1%12</td><td>Ping a link-local w/ zone ID (Windows)</td></tr><tr><td>fe80::/10</td><td>Link-local prefix</td></tr><tr><td>2000::/3</td><td>Global unicast prefix</td></tr><tr><td>::1</td><td>IPv6 loopback</td></tr><tr><td>::</td><td>Compress one run of zero groups (once only)</td></tr></table></section>
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>IPv4's ~4 billion addresses ran out. <strong>IPv6</strong> is 128 bits — about 340 undecillion addresses — written as eight hex groups, e.g. <code class="inl">2001:050A:9E52:0D65:0000:000A:1234:CEF2</code>. There's no subnet mask; the <strong>prefix length</strong> (usually <code class="inl">/64</code>) marks the network portion. The first 64 bits are the network, the last 64 the host.</p><p>You configure a host for IPv6 two ways — <strong>DHCPv6</strong> (automatic) and <strong>static</strong> — then verify with IPv6-aware commands. pfSense provides the DHCPv6 and DNS services; WinOS is the client.</p><div class="call tip"><span class="k">Compression rules you must know</span>Drop leading zeros in each group (<code class="inl">00A</code> → <code class="inl">A</code>), and replace <em>one</em> run of all-zero groups with <code class="inl">::</code>. You may use <code class="inl">::</code> only once per address.</div><div class="call tip"><span class="k">Address types at a glance</span><strong>Link-local</strong> (<code class="inl">fe80::/10</code>) is auto-configured on every IPv6 interface and used on the local link only. <strong>Global unicast</strong> (<code class="inl">2000::/3</code>) is the routable, Internet-facing kind.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>pfSense</strong> serves DHCPv6 and DNS; <strong>WinOS</strong> is the DHCP/IPv6 client you configure and test.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">Task 1 — DHCPv6 on Windows</p><div class="step"><h3><span class="n">1</span>Enable IPv6 automatic addressing</h3><p>In the adapter's <strong>IPv6</strong> properties, select <em>Obtain an IPv6 address automatically</em> and <em>Obtain DNS server address automatically</em>. Apply.</p></div><div class="step"><h3><span class="n">2</span>Verify the assigned address</h3><div class="code"><pre data-copy="ipconfig /all">ipconfig /all</pre></div><p>You'll see a <strong>link-local</strong> (<code class="inl">fe80::…%&lt;zoneid&gt;</code>) always present, and a <strong>global</strong> address if DHCPv6 handed one out. <span class="shot">📷 screenshot for your report</span></p></div><div class="step"><h3><span class="n">3</span>Test DHCPv6 connectivity</h3><div class="code"><pre data-copy="ping 2000:9b32:c0e9:a::1">ping 2000:9b32:c0e9:a::1</pre></div></div><p class="task-head">Task 2 — Static IPv6 on Windows</p><div class="step"><h3><span class="n">1</span>Enter a static IPv6 address</h3><p>Switch the IPv6 properties to <em>Use the following IPv6 address</em> and enter the address, <strong>prefix length</strong> (e.g. <code class="inl">64</code>), <strong>default gateway</strong>, and DNS from the addressing table. Apply.</p></div><div class="step"><h3><span class="n">2</span>Verify and test</h3><div class="code"><pre data-copy="ipconfig /all">ipconfig /all</pre></div><p>Then confirm reachability over IPv6. <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="ping 2000:9b32:c0e9:a::1">ping 2000:9b32:c0e9:a::1</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Configure a Computer for DHCPv6 Addressing</p>
+<p class="task-head">Task 1.1 - Enable and Verify DHCPv6 on a Windows Computer</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the log in screen.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Log in to the WinOS machine using the following credentials:</h3><div class="code"><pre>Username: Administrator Password: NDGlabpass123!</pre></div></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the Windows search bar, type Control Panel, and then click the Control Panel App.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> In the Control Panel, click the Network and Internet icon, and then click Network and Sharing Center.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> In the Network and Sharing Center, click Change adapter settings.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> This will bring you to the Network Connections page. Here you can view all currently installed network adapters (NICs). Notice there is one Ethernet adapter labeled Ethernet0 (1) for Network 2 (can be a different number). It is a wired connection, as indicated by the plug symbol (2) under the PC icon.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> Right-click the Ethernet0 icon, and then click Properties.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> The Ethernet0 Properties window is displayed. Scroll down until you see the Internet Protocol Version 6 (TCP/IPv6) item.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Click Internet Protocol Version 6 (TCP/IPv6) checkbox to select, and then click the Properties button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">11</span> The Internet Protocol Version 6 (TCP/IPv6) Properties window displays the current IPv6 address configuration on Ethernet0. a. Document the current IPv6 configuration settings. You will need these later on in the lab. IPv6 address: ___________________________ Subnet prefix length: _____________________ Default gateway: ________________________ Preferred DNS server: ____________________ These settings are static, meaning that they were manually configured by a user. Static addressing is useful when you want a device to keep the same address configuration, even if the device is rebooted. Important key devices on a network should always be statically assigned IP addresses. These key devices include routers, switches, firewalls, printers, wireless access points, servers, and admin devices.</h3></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Successful <strong>ping over IPv6</strong> after static configuration</div><div class="step"><h3 class="fh"><span class="n">12</span> Now we will set the Ethernet0 connection to obtain IPv6 addresses dynamically from a DHCPv6 server. a. Click the radio buttons next to Obtain an IPv6 address automatically and Obtain b. Because we want to implement Dual Stack, we need to enable DHCPv4 as well on c. Notice that Ethernet0 is currently configured with static addressing. d. In the Internet Protocol Version 4 (TCP/IPv4) window, click the radial buttons for Next click OK. e. Click Close, then minimize the Network Connections window.</h3><div class="call tip"><span class="k">Note</span><p>DNS server address automatically. Next, click OK. Ethernet0. Click Internet Protocol Version 4 (TCP/IPv4). Next click Properties. Obtain an IP address automatically and Obtain DNS server address automatically.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> Successful <strong>ping over IPv6</strong> to the gateway while on DHCPv6</div><div class="step"><h3 class="fh"><span class="n">13</span> In step 10, the Ethernet0 adapter was set to obtain IPv6 and IPv4 addresses automatically from a DHCP server. To verify that this worked and Ethernet0 has obtained, we need to use the ipconfig utility from Windows Command Prompt. a. In the Windows search bar, type cmd. Click the Command Prompt icon. b. In the Command Prompt window, type ipconfig/all and press Enter. You may have to resize the Command Prompt window to see the full output. The ipconfig/all command displays the current IP configuration on Ethernet adapter Ethernet0 for both IPv4 and IPv6. Observe the IPv6 addresses. There are both global unicast (2) and link-local IPv6 addresses (3). c. The /all option added to ipconfig allows all IPv4 and IPv6 addressing parameters to be displayed. Notice DHCP Enabled is Yes (1), and there is an IPv6 Global Unicast Address (2), a Link-local IPv6 Address (3), Lease time (4), Default Gateway for IPv6 (5), DHCP Server</h3><div class="call tip"><span class="k">Note</span><p>Address (6) and DNS Servers (7), for both IPv4 and IPv6.</p></div></div>
+<div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">ipconfig /all</code> showing your <strong>static IPv6</strong> address and prefix</div><div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">ipconfig /all</code> showing the <strong>DHCPv6-assigned</strong> IPv6 address (plus link-local)</div><p class="task-head">Task 1.2 - Testing DHCPv6</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> From Windows Command Prompt, type ipconfig/release6, and then press Enter. Type ipconfig/all. Notice that the IPv6 global unicast address is gone. It has been released back to the DHCPv6 server pool in our network.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> To request a new lease of IPv6 address configuration from the DHCPv6 server from Windows Command Prompt, type ipconfig/renew6, and then press Enter. After a few seconds, an IPv6 global unicast address appears.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> From Windows Command Prompt, type ipconfig/all to view the full IP address configuration leased from the DHCPv6 server. Notice that the same IPv6 address was leased from the DHCPv6 server. The only difference is the time the lease was obtained. DHCPv6 will try to allocate the same IP address to the host machine requesting it.</h3></div>
+<p class="task-head">Task 1.3 - Conclusion</p>
+<p class="task-head">Task 2 - Configure Static IPv6 Addressing on a Computer</p>
+<p class="task-head">Task 2.1 - Enable and Verity Static IPv6 Addressing</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> First, we will release the IPv6 addressing from the Ethernet0 adapter. In the Command Prompt window, type ipconfig/release6. Notice that the IPv6 address is no longer listed.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Click the Network Connections icon in the Windows Taskbar to restore.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Right-click the Ethernet0 icon, and then click Properties.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">4</span> In the Ethernet0 Properties window, scroll down and click on the Internet Protocol Version 6 (TCP/IPv6) icon, and then click the Properties button.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">5</span> Notice that the Internet Protocol Version 6 (TCP/IPv6) Properties window displays the previously configured automatic settings for DHCPv6.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">6</span> Next, we will now configure static addressing on the Ethernet0 network adapter. Click the radial button next to Use the following IPv6 Address. Refer back to Section 1.1, step 11a, displaying the previous IPv6 configuration settings you documented.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">7</span> Type in the parameters for: IPv6 address, Subnet prefix length, Default gateway, and Preferred DNS server. Click OK.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">8</span> In the Ethernet0 Properties window, click Close. Minimize the Network Connections window.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">9</span> Since the Ethernet0 adapter is now configured with static IPv6 addressing, we need to verify that the settings were applied. Just as the DHCP settings were validated using Command Prompt, we will do the same to verify static configuration. Type ipconfig/all and press Enter.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">10</span> Verify that the Windows IPv6 Configuration for Ethernet adapter Ethernet0 matches what you configured in step 7. Validate that the static IPv6 Address (1), Default Gateway (2), and DNS</h3><div class="call tip"><span class="k">Note</span><p>Servers (3) values are correct for IPv6.</p></div></div>
+<p class="task-head">Task 2.2 - Testing Connectivity</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> From the WinOS command prompt, type ipconfig/all to view the Windows IP Configuration for Ethernet0.</h3></div>
+<div class="step"><h3 class="fh"><span class="n">2</span> Ping the IPv6 DNS Server IP address by typing ping followed by the address of the IPv6 DNS</h3><div class="call tip"><span class="k">Note</span><p>Server. Note that there is a space between ping and the IPv6 address.</p></div></div>
+<div class="step"><h3 class="fh"><span class="n">3</span> Press Enter. You should see four ICMP Echo replies from 2000:9b32:c0e9:a::1. The word reply means that the ping packet successfully reached the destination and the destination replied back to the source. In this example, the source computer is the device sending the pings, and the destination is the device receiving the pings and then replying back to the source.</h3></div>
+<p class="task-head">Task 3.3 - Conclusion</p>
+<div class="step"><h3 class="fh"><span class="n">1</span> The American Registry for Internet Numbers (ARIN)</h3><div class="code"><pre>https://www.arin.net/resources/guide/ipv6/history/</pre></div></div><div class="done-row"><input type="checkbox" id="done-fullsteps" data-done="fullsteps"><label for="done-fullsteps">Mark this section reviewed</label></div></section><section id="reference"><h2>IPv6 reference</h2><div class="scroll"><table class="tbl"><thead><tr><th>Prefix</th><th>Type</th><th>Meaning</th></tr></thead><tbody><tr><td><code class="inl">2000::/3</code></td><td>Global unicast</td><td>Routable, Internet-facing (like a public IPv4)</td></tr><tr><td><code class="inl">fe80::/10</code></td><td>Link-local</td><td>Auto-configured, local link only, never routed</td></tr><tr><td><code class="inl">fc00::/7</code></td><td>Unique local (ULA)</td><td>Private, site-internal (like RFC 1918)</td></tr><tr><td><code class="inl">ff00::/8</code></td><td>Multicast</td><td>One-to-many; replaces IPv4 broadcast</td></tr><tr><td><code class="inl">::1/128</code></td><td>Loopback</td><td>Equivalent of 127.0.0.1</td></tr><tr><td><code class="inl">::/0</code></td><td>Default route</td><td>All destinations</td></tr></tbody></table></div><dl class='ref'><dt>Prefix length</dt><dd>The IPv6 equivalent of a subnet mask; <code class="inl">/64</code> = first 64 bits are the network.</dd><dt>SLAAC</dt><dd>Stateless Address Autoconfiguration — a host builds its own address from the router's advertised prefix, no DHCP needed.</dd><dt>EUI-64</dt><dd>A way to derive the 64-bit host portion from the interface MAC address.</dd><dt>Zone ID</dt><dd>The <code class="inl">%12</code>-style suffix on a link-local address identifying which interface it belongs to.</dd></dl></section><section id="stuck"><h2>Where people get stuck</h2><div class="scroll"><table class="tbl"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead><tbody><tr><td>Only a <code class="inl">fe80::</code> address appears</td><td>No DHCPv6/RA received — only link-local auto-configured</td><td>Confirm pfSense DHCPv6 is enabled; link-local alone can't reach other subnets.</td></tr><tr><td>Ping to IPv6 gateway fails</td><td>Wrong prefix length or gateway</td><td>Re-check the prefix (usually /64) and the gateway address.</td></tr><tr><td><code class="inl">::</code> used twice in an address</td><td>Invalid compression</td><td><code class="inl">::</code> may appear only once; expand one of the zero runs back to full groups.</td></tr><tr><td>Pinging link-local fails without zone</td><td>Windows needs the zone index</td><td>Append the zone ID, e.g. <code class="inl">ping fe80::1%12</code>.</td></tr></tbody></table></div></section><section id="exam"><h2>Exam relevance (N10-009)</h2><ul><li><strong>Compress and expand</strong> IPv6 addresses correctly — a guaranteed exam skill.</li><li>Recognize <strong>link-local (fe80::)</strong>, <strong>global (2000::/3)</strong>, <strong>ULA (fc00::/7)</strong>, <strong>loopback (::1)</strong>.</li><li>Know <strong>/64</strong> as the standard prefix and that IPv6 uses <strong>prefix length</strong>, not a dotted mask.</li><li>Know <strong>SLAAC</strong> vs <strong>DHCPv6</strong> as the two autoconfig paths, and that <strong>multicast replaces broadcast</strong> in IPv6.</li></ul><div class="done-row"><input type="checkbox" id="done-exam" data-done="exam"><label for="done-exam">Mark this section reviewed</label></div></section><section id="check"><h2>Check yourself</h2><div class="q"><p class="ask">1. Compress 2001:0DB8:0000:0000:0000:00A1:0000:0001.</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><code class="inl">2001:db8::a1:0:1</code>. Leading zeros dropped; the single longest zero run collapsed to <code class="inl">::</code>.</div></div><div class="q"><p class="ask">2. A Windows host has only an fe80:: address. What's missing?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">A <strong>global or ULA</strong> address — it got no DHCPv6 lease or Router Advertisement, so only the auto link-local exists. It can't leave the local link.</div></div><div class="q"><p class="ask">3. What replaces IPv4 broadcast in IPv6?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans"><strong>Multicast</strong> (ff00::/8). IPv6 has no broadcast at all.</div></div><div class="q"><p class="ask">4. What does /64 tell you?</p><button class="reveal" type="button" aria-expanded="false">Show answer</button><div class="ans">The first <strong>64 bits are the network/subnet prefix</strong>; the last 64 are the host (interface) ID.</div></div></section><section id="evidence" class="evidence"><h2>Evidence to capture</h2><p>Your instructor wants screenshots of the key steps as proof you ran the lab. Tick each one as you capture it — your progress is saved on this device.</p><div class="ev-row"><input type="checkbox" id="ev-1" data-done="ev-1"><label for="ev-1"><code class="inl">ipconfig /all</code> showing the <strong>DHCPv6-assigned</strong> IPv6 address (plus link-local)</label></div><div class="ev-row"><input type="checkbox" id="ev-2" data-done="ev-2"><label for="ev-2">Successful <strong>ping over IPv6</strong> to the gateway while on DHCPv6</label></div><div class="ev-row"><input type="checkbox" id="ev-3" data-done="ev-3"><label for="ev-3"><code class="inl">ipconfig /all</code> showing your <strong>static IPv6</strong> address and prefix</label></div><div class="ev-row"><input type="checkbox" id="ev-4" data-done="ev-4"><label for="ev-4">Successful <strong>ping over IPv6</strong> after static configuration</label></div></section><section id="cheat" class="cheat"><h2>Cheat sheet</h2><table><tr><td>ipconfig /all</td><td>Show IPv6 address, link-local, DHCPv6 server</td></tr><tr><td>ping &lt;ipv6&gt;</td><td>Test IPv6 reachability</td></tr><tr><td>ping fe80::1%12</td><td>Ping a link-local w/ zone ID (Windows)</td></tr><tr><td>fe80::/10</td><td>Link-local prefix</td></tr><tr><td>2000::/3</td><td>Global unicast prefix</td></tr><tr><td>::1</td><td>IPv6 loopback</td></tr><tr><td>::</td><td>Compress one run of zero groups (once only)</td></tr></table></section>
 
   <div class="pager"><a href="netplus_lab02.html"><span class="lbl">← Previous lab</span>Lab 02 · IPv4 Addressing</a><a class="nx" href="netplus_lab04.html"><span class="lbl">Next lab →</span>Lab 04 · Understanding Network and Port Address Translation</a></div>
 </main>
@@ -382,5 +424,168 @@ document.addEventListener("DOMContentLoaded",function(){
   if(pb)pb.addEventListener("click",function(){window.print();});
 });
 </script>
+
+<!-- ===== LAB MODE (begin) — self-contained; safe to remove as a block ===== -->
+<style id="lab-mode-css">
+/* Floating toggle button — always available, top-right */
+.pm-toggle{position:fixed;top:10px;right:12px;z-index:2147483100;display:inline-flex;
+  align-items:center;gap:7px;min-height:40px;padding:0 15px;cursor:pointer;
+  font:600 .85rem/1 var(--sans);border-radius:999px;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  box-shadow:var(--shadow)}
+.pm-toggle:hover{filter:brightness(1.08)}
+.pm-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pm-toggle .pm-ico{font-family:var(--mono);font-weight:700}
+@media print{.pm-toggle{display:none!important}}
+
+/* ---- When lab mode is ON ---- */
+html[data-present="on"] body{line-height:1.5}
+html[data-present="on"] #main{max-width:100%;padding:8px 14px 90px}
+
+/* Hide page chrome that wastes room in a narrow column */
+html[data-present="on"] .topbar,
+html[data-present="on"] #main > .backlink,
+html[data-present="on"] #main > .progwrap,
+html[data-present="on"] #main > .toc,
+html[data-present="on"] #main > .pager,
+html[data-present="on"] .hero .lede,
+html[data-present="on"] .hero .badges,
+html[data-present="on"] .hero .obj,
+html[data-present="on"] .done-row{display:none!important}
+
+/* Slim the hero down to a compact title */
+html[data-present="on"] .hero{margin:0 0 10px;padding:2px 0}
+html[data-present="on"] .hero h1{font-size:1.15rem;line-height:1.25;margin:4px 0 0}
+
+/* Show one section at a time */
+html[data-present="on"] #main > section{display:none}
+html[data-present="on"] #main > section.pm-current{display:block;animation:pm-fade .18s ease}
+@keyframes pm-fade{from{opacity:0}to{opacity:1}}
+
+/* Readability bump for the one visible section */
+html[data-present="on"] #main > section{font-size:1.05rem}
+html[data-present="on"] #main > section > h2{font-size:1.2rem}
+html[data-present="on"] .step h3,
+html[data-present="on"] .step h4{font-size:1.04rem}
+html[data-present="on"] .code pre{font-size:1rem;white-space:pre-wrap;word-break:break-word}
+
+/* Slim bottom control dock for advancing through sections */
+.pm-dock{display:none}
+html[data-present="on"] .pm-dock{position:fixed;left:0;right:0;bottom:0;z-index:2147483100;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0));
+  background:var(--panel);border-top:1px solid var(--line)}
+.pm-dock button{flex:0 0 auto;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer;
+  font:700 .9rem/1 var(--sans);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+.pm-dock button:hover{background:var(--accent);color:var(--accent-ink)}
+.pm-dock button:disabled{opacity:.4;cursor:not-allowed}
+.pm-dock button:disabled:hover{background:var(--panel-2);color:var(--ink)}
+.pm-dock .pm-where{flex:1 1 auto;text-align:center;min-width:0;
+  font:600 .82rem/1.25 var(--sans);color:var(--ink-soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-dock .pm-where b{color:var(--ink);display:block;font-size:.9rem}
+.pm-dock .pm-exit{background:transparent}
+</style>
+
+<div class="pm-dock" id="pmDock" aria-hidden="true">
+  <button type="button" data-pm="prev" aria-label="Previous section">◀</button>
+  <div class="pm-where"><span id="pmCount"></span><b id="pmName"></b></div>
+  <button type="button" data-pm="next" aria-label="Next section">▶</button>
+  <button type="button" data-pm="exit" class="pm-exit" aria-label="Exit lab mode">✕</button>
+</div>
+
+<script id="lab-mode-js">
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var KEY = "netplus:labmode:v1";             // shared across all Network+ companion pages
+  var sections = [], idx = 0;
+  var dock, countEl, nameEl, prevBtn, nextBtn;
+
+  function labelFor(sec) {
+    var h = sec.querySelector("h2");
+    if (!h) return sec.id || "Section";
+    return (h.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function show(i) {
+    if (!sections.length) return;
+    idx = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach(function (s, n) { s.classList.toggle("pm-current", n === idx); });
+    if (countEl) countEl.textContent = (idx + 1) + " / " + sections.length;
+    if (nameEl) nameEl.textContent = labelFor(sections[idx]);
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === sections.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  function enter() {
+    sections = Array.prototype.slice.call(document.querySelectorAll("#main > section"));
+    root.setAttribute("data-present", "on");
+    if (dock) dock.setAttribute("aria-hidden", "false");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "true");
+      btn.querySelector(".pm-txt").textContent = "Exit lab mode"; }
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    show(0);
+  }
+
+  function exit() {
+    root.removeAttribute("data-present");
+    sections.forEach(function (s) { s.classList.remove("pm-current"); });
+    if (dock) dock.setAttribute("aria-hidden", "true");
+    var btn = document.getElementById("pmToggle");
+    if (btn) { btn.setAttribute("aria-pressed", "false");
+      btn.querySelector(".pm-txt").textContent = "Lab mode"; }
+    try { localStorage.setItem(KEY, "0"); } catch (e) {}
+  }
+
+  function toggle() { root.getAttribute("data-present") === "on" ? exit() : enter(); }
+
+  function build() {
+    var btn = document.createElement("button");
+    btn.className = "pm-toggle"; btn.id = "pmToggle"; btn.type = "button";
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Lab mode — steps beside the lab, one section at a time (Shift+L)";
+    btn.innerHTML = '<span class="pm-ico" aria-hidden="true">\u21E5</span><span class="pm-txt">Lab mode</span>';
+    btn.addEventListener("click", toggle);
+    document.body.appendChild(btn);
+
+    dock = document.getElementById("pmDock");
+    countEl = document.getElementById("pmCount");
+    nameEl = document.getElementById("pmName");
+    if (dock) {
+      prevBtn = dock.querySelector('[data-pm="prev"]');
+      nextBtn = dock.querySelector('[data-pm="next"]');
+      dock.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-pm]"); if (!t) return;
+        var a = t.getAttribute("data-pm");
+        if (a === "prev") show(idx - 1);
+        else if (a === "next") show(idx + 1);
+        else if (a === "exit") exit();
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+        var tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+        e.preventDefault(); toggle(); return;
+      }
+      if (root.getAttribute("data-present") !== "on") return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); show(idx + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(idx - 1); }
+      else if (e.key === "Escape") { e.preventDefault(); exit(); }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", build);
+  else build();
+})();
+</script>
+<!-- ===== LAB MODE (end) ===== -->
+
 </body>
 </html>
