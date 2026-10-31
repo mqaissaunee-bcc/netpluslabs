@@ -142,6 +142,24 @@ em{color:var(--ink-soft)}
 .task-head{font-weight:700;color:var(--accent-ink);margin:1.4rem 0 .2rem;
   padding-top:.5rem;border-top:1px dashed var(--line)}
 
+/* machine bands — introduce the run of steps that happens on one VM */
+.mband{display:flex;align-items:center;gap:.5rem;margin:1.3rem 0 .4rem;padding:.45rem .75rem;
+  border-radius:8px;font-weight:700;font-size:.92rem;border:1px solid var(--line);
+  border-left:4px solid var(--accent);background:var(--panel)}
+.mband .mi{font-size:1.1rem;line-height:1;flex:none}
+.mband small{font-weight:600;color:var(--faint);font-size:.76rem;margin-left:.15rem}
+.mband.m-win{border-left-color:var(--accent);background:var(--d1-soft);color:var(--accent-ink)}
+.mband.m-linux{border-left-color:var(--signal);background:var(--signal-soft)}
+.mband.m-router{border-left-color:var(--copper);background:var(--copper-soft)}
+.mband.m-switch{border-left-color:var(--d5);background:var(--d5-soft)}
+.mband.m-android{border-left-color:var(--d2);background:var(--d2-soft)}
+/* inline "On <machine>:" label for a single step that switches VMs mid-step */
+.onvm{display:inline-flex;align-items:center;gap:.25rem;font-weight:700;font-size:.78rem;
+  padding:.06rem .45rem;border-radius:6px;border:1px solid var(--line);background:var(--panel-2);
+  color:var(--ink);white-space:nowrap;margin-right:.35rem;vertical-align:baseline}
+/* non-selectable terminal prompt prefix inside code blocks (not included in copy) */
+.code pre .pr{color:var(--code-faint);user-select:none}
+
 /* code + copy */
 .code{position:relative;background:var(--code-bg);border-radius:8px;margin:.5rem 0;
   border:1px solid rgba(255,255,255,.06)}
@@ -280,45 +298,59 @@ footer .program{color:var(--ink-soft);font-weight:600}
     <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
-  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>Private addresses (RFC 1918) can't appear on the Internet. <strong>NAT</strong> rewrites the addresses in packet headers at the edge router so private hosts can communicate with the outside world and vice-versa. You configure three flavors on a <strong>VyOS</strong> edge router:</p><ul><li><strong>SNAT (Source NAT)</strong> — rewrites the <em>source</em> address of outbound traffic so many inside hosts share one public address. With port tracking this is <strong>PAT</strong> (what home routers do).</li><li><strong>DNAT (Destination NAT)</strong> — rewrites the <em>destination</em> of inbound traffic so an outside user reaching your public IP lands on a specific internal server (port forwarding).</li><li><strong>1-to-1 NAT</strong> — a fixed, bidirectional mapping between one public and one private address.</li></ul><div class="call tip"><span class="k">SNAT vs DNAT direction</span>SNAT fixes <em>who it's from</em> on the way out. DNAT fixes <em>who it's for</em> on the way in. Keep the direction straight and the rest follows.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p>Inside <strong>GNS3</strong> you have a <strong>VyOS Edge router</strong> with an inside interface (<code class="inl">eth0</code>, the gateway for PC1–PC3) and an outside interface (<code class="inl">eth1</code>, toward the Provider network). You configure addressing, then layer SNAT, DNAT, and 1-to-1 NAT on top.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><div class="call warn"><span class="k">VyOS, not Cisco IOS</span>These routers run <strong>VyOS</strong>. You enter <code class="inl">configure</code> to edit, build config with <code class="inl">set …</code>, apply with <code class="inl">commit</code>, and persist with <code class="inl">save</code>. <code class="inl">show</code> commands work from operational mode.</div><p class="task-head">Basic device + interface addressing</p><div class="step"><h3><span class="n">1</span>Enter config mode and address the interfaces</h3><div class="code"><pre data-copy="configure
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>Private addresses (RFC 1918) can't appear on the Internet. <strong>NAT</strong> rewrites the addresses in packet headers at the edge router so private hosts can communicate with the outside world and vice-versa. You configure three flavors on a <strong>VyOS</strong> edge router:</p><ul><li><strong>SNAT (Source NAT)</strong> — rewrites the <em>source</em> address of outbound traffic so many inside hosts share one public address. With port tracking this is <strong>PAT</strong> (what home routers do).</li><li><strong>DNAT (Destination NAT)</strong> — rewrites the <em>destination</em> of inbound traffic so an outside user reaching your public IP lands on a specific internal server (port forwarding).</li><li><strong>1-to-1 NAT</strong> — a fixed, bidirectional mapping between one public and one private address.</li></ul><div class="call tip"><span class="k">SNAT vs DNAT direction</span>SNAT fixes <em>who it's from</em> on the way out. DNAT fixes <em>who it's for</em> on the way in. Keep the direction straight and the rest follows.</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the <strong>NDG NETLAB+ pod</strong>, but each lab uses only the machines its exercise needs. The table below is this lab's <strong>Lab Settings</strong>, straight from the NDG guide. <strong>Lab 04 runs inside GNS3 on WinOS</strong>: you console into the <strong>Edge</strong> (VyOS) router and the VPCS hosts (PC1-PC3, InternetHost). The <strong>Provider</strong> switch (EXOS) is pre-configured — you don't touch it.</p><div class="scroll"><table class="tbl"><thead><tr><th>Virtual machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td><code class="inl">gns3</code></td></tr><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td><code class="inl">NDGlabpass123!</code></td></tr><tr><td><strong>EXOS</strong> (provider switch)</td><td>—</td><td>admin</td><td><em>(no password)</em></td></tr><tr><td><strong>VyOS</strong> (Edge router)</td><td>—</td><td>vyos</td><td><code class="inl">vyos</code></td></tr></tbody></table></div><div class="call env"><span class="k">Pod topology</span><strong>Inside LAN 192.168.10.0/24</strong> — PC1 <code class="inl">.2</code>, PC2 <code class="inl">.3</code>, PC3 <code class="inl">.200</code>, with Edge <code class="inl">eth0 192.168.10.1</code> as the gateway. <strong>Outside link 168.50.80.0/30</strong> — Edge <code class="inl">eth1 168.50.80.1</code> toward the Provider switch. <strong>InternetHost</strong> <code class="inl">200.80.6.10</code> sits on the outside. The Edge router performs all NAT between inside and outside.</div><div class="call tip"><span class="k">Reserve the pod first</span>If the lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the pod and confirm the VMs are up before you start.</div><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><div class="call warn"><span class="k">VyOS, not Cisco IOS</span>These routers run <strong>VyOS</strong>. You enter <code class="inl">configure</code> to edit, build config with <code class="inl">set …</code>, apply with <code class="inl">commit</code>, and persist with <code class="inl">save</code>. <code class="inl">show</code> commands run from operational mode.</div><div class="mband m-router"><span class="mi" aria-hidden="true">🧭</span>On Edge (VyOS router)<small>console in from the GNS3 topology · operational prompt vyos@vyos:~$, config prompt vyos@vyos#</small></div><p class="task-head">Basic device + interface addressing</p><div class="step"><h3><span class="n">1</span>Address the Edge interfaces</h3><p>Console into <strong>Edge</strong>, enter config mode, and set the inside (<code class="inl">eth0</code>) and outside (<code class="inl">eth1</code>) interfaces:</p><div class="code"><pre data-copy="configure
 set interfaces ethernet eth0 address 192.168.10.1/24
-set interfaces ethernet eth1 address &lt;provider-ip&gt;/&lt;prefix&gt;
+set interfaces ethernet eth0 description 'Inside Network'
+set interfaces ethernet eth1 address 168.50.80.1/30
+set interfaces ethernet eth1 description 'Outside Network'
 commit
-save">configure
-set interfaces ethernet eth0 address 192.168.10.1/24
-set interfaces ethernet eth1 address &lt;provider-ip&gt;/&lt;prefix&gt;
+save"><span class="pr">vyos@vyos:~$ </span>configure
+<span class="pr">vyos@vyos# </span>set interfaces ethernet eth0 address 192.168.10.1/24
+<span class="pr">vyos@vyos# </span>set interfaces ethernet eth0 description 'Inside Network'
+<span class="pr">vyos@vyos# </span>set interfaces ethernet eth1 address 168.50.80.1/30
+<span class="pr">vyos@vyos# </span>set interfaces ethernet eth1 description 'Outside Network'
+<span class="pr">vyos@vyos# </span>commit
+<span class="pr">vyos@vyos# </span>save</pre></div><p>Verify from operational mode (type <code class="inl">exit</code> first): <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show interfaces"><span class="pr">vyos@vyos:~$ </span>show interfaces</pre></div><p>The PCs are addressed from their own VPCS consoles, e.g. <span class="onvm">On PC1</span><code class="inl">ip 192.168.10.2 255.255.255.0 192.168.10.1</code>.</p></div><p class="task-head">Source NAT (SNAT) — many-to-one</p><div class="step"><h3><span class="n">1</span>Translate the inside network out eth1</h3><div class="code"><pre data-copy="set nat source rule 10 description 'SNAT'
+set nat source rule 10 outbound-interface 'eth1'
+set nat source rule 10 source address '192.168.10.0/24'
+set nat source rule 10 translation address 'masquerade'
 commit
-save</pre></div><p>Confirm from operational mode: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show interfaces">show interfaces</pre></div></div><p class="task-head">Source NAT (SNAT)</p><div class="step"><h3><span class="n">1</span>Translate outbound traffic to the outside address</h3><div class="code"><pre data-copy="set nat source rule 10 description &#x27;SNAT inside to outside&#x27;
-set nat source rule 10 outbound-interface eth1
-set nat source rule 10 source address 192.168.10.0/24
-set nat source rule 10 translation address masquerade
-commit ; save">set nat source rule 10 description 'SNAT inside to outside'
-set nat source rule 10 outbound-interface eth1
-set nat source rule 10 source address 192.168.10.0/24
-set nat source rule 10 translation address masquerade
-commit ; save</pre></div><p><code class="inl">masquerade</code> uses the outbound interface's address automatically. Test from a PC by reaching an outside host. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Destination NAT (DNAT)</p><div class="step"><h3><span class="n">1</span>Forward inbound traffic to an internal server</h3><div class="code"><pre data-copy="set nat destination rule 20 description &#x27;DNAT to internal server&#x27;
-set nat destination rule 20 inbound-interface eth1
-set nat destination rule 20 protocol tcp
-set nat destination rule 20 destination port 80
-set nat destination rule 20 translation address 192.168.10.50
-commit ; save">set nat destination rule 20 description 'DNAT to internal server'
-set nat destination rule 20 inbound-interface eth1
-set nat destination rule 20 protocol tcp
-set nat destination rule 20 destination port 80
-set nat destination rule 20 translation address 192.168.10.50
-commit ; save</pre></div><p>Now an outside client hitting the router's public IP on port 80 is sent to the internal web server. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">1-to-1 NAT</p><div class="step"><h3><span class="n">1</span>Map one public address to one private, both ways</h3><div class="code"><pre data-copy="set nat destination rule 30 inbound-interface eth1
-set nat destination rule 30 destination address &lt;public-ip&gt;
-set nat destination rule 30 translation address 192.168.10.50
-commit ; save">set nat destination rule 30 inbound-interface eth1
-set nat destination rule 30 destination address &lt;public-ip&gt;
-set nat destination rule 30 translation address 192.168.10.50
-commit ; save</pre></div><p>Verify all rules and the translation table: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show nat source rules
-show nat destination rules
-show nat source translations">show nat source rules
-show nat destination rules
-show nat source translations</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology and Addressing Table</p>
+save"><span class="pr">vyos@vyos# </span>set nat source rule 10 description 'SNAT'
+<span class="pr">vyos@vyos# </span>set nat source rule 10 outbound-interface 'eth1'
+<span class="pr">vyos@vyos# </span>set nat source rule 10 source address '192.168.10.0/24'
+<span class="pr">vyos@vyos# </span>set nat source rule 10 translation address 'masquerade'
+<span class="pr">vyos@vyos# </span>commit
+<span class="pr">vyos@vyos# </span>save</pre></div><p><code class="inl">masquerade</code> overloads the <code class="inl">eth1</code> address (168.50.80.1) for every inside host. Generate traffic and inspect the NAT table: <span class="onvm">On PC1</span><code class="inl">ping 200.80.6.10</code>, then back on Edge:</p><div class="code"><pre data-copy="show nat source translations"><span class="pr">vyos@vyos:~$ </span>show nat source translations</pre></div><p>Translations age out after about 30 seconds. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">Destination NAT (DNAT) — forward inbound to an internal host</p><div class="step"><h3><span class="n">1</span>Forward inbound ICMP to PC3 (192.168.10.200)</h3><div class="code"><pre data-copy="set nat destination rule 20 description 'DNAT'
+set nat destination rule 20 inbound-interface 'eth1'
+set nat destination rule 20 protocol 'icmp'
+set nat destination rule 20 translation address '192.168.10.200'
+commit
+save"><span class="pr">vyos@vyos# </span>set nat destination rule 20 description 'DNAT'
+<span class="pr">vyos@vyos# </span>set nat destination rule 20 inbound-interface 'eth1'
+<span class="pr">vyos@vyos# </span>set nat destination rule 20 protocol 'icmp'
+<span class="pr">vyos@vyos# </span>set nat destination rule 20 translation address '192.168.10.200'
+<span class="pr">vyos@vyos# </span>commit
+<span class="pr">vyos@vyos# </span>save</pre></div><p>Inbound ICMP to the outside interface is forwarded to PC3. Test from outside: <span class="onvm">On InternetHost</span><code class="inl">ping 192.168.10.200</code>, then on Edge:</p><div class="code"><pre data-copy="show nat destination translations"><span class="pr">vyos@vyos:~$ </span>show nat destination translations</pre></div><p><span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">1-to-1 NAT — one public ⇄ one private, both ways</p><div class="step"><h3><span class="n">1</span>Pair a DNAT and a SNAT rule (rule 30)</h3><p>1-to-1 NAT is a DNAT rule plus a matching SNAT rule that map <code class="inl">168.50.80.1</code> ⇄ <code class="inl">192.168.10.200</code> for all traffic:</p><div class="code"><pre data-copy="set nat destination rule 30 description '1-to-1 NAT'
+set nat destination rule 30 destination address '168.50.80.1'
+set nat destination rule 30 inbound-interface 'eth1'
+set nat destination rule 30 translation address '192.168.10.200'
+set nat source rule 30 description '1-to-1 NAT'
+set nat source rule 30 outbound-interface 'eth1'
+set nat source rule 30 source address '192.168.10.200'
+set nat source rule 30 translation address '168.50.80.1'
+commit
+save"><span class="pr">vyos@vyos# </span>set nat destination rule 30 description '1-to-1 NAT'
+<span class="pr">vyos@vyos# </span>set nat destination rule 30 destination address '168.50.80.1'
+<span class="pr">vyos@vyos# </span>set nat destination rule 30 inbound-interface 'eth1'
+<span class="pr">vyos@vyos# </span>set nat destination rule 30 translation address '192.168.10.200'
+<span class="pr">vyos@vyos# </span>set nat source rule 30 description '1-to-1 NAT'
+<span class="pr">vyos@vyos# </span>set nat source rule 30 outbound-interface 'eth1'
+<span class="pr">vyos@vyos# </span>set nat source rule 30 source address '192.168.10.200'
+<span class="pr">vyos@vyos# </span>set nat source rule 30 translation address '168.50.80.1'
+<span class="pr">vyos@vyos# </span>commit
+<span class="pr">vyos@vyos# </span>save</pre></div><p>Test both directions — <span class="onvm">On PC3</span><code class="inl">ping 200.80.6.10</code> and <span class="onvm">On InternetHost</span><code class="inl">ping 192.168.10.200</code> — then review <code class="inl">show nat source translations</code> and <code class="inl">show nat destination translations</code> on Edge. <span class="shot">📷 screenshot for your report</span></p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology and Addressing Table</p>
 <p class="task-head">Task 2 - Network Address Translation (NAT)</p>
-<p class="task-head">Task 3 - Basic Device Configurations</p>
+<div class="mband m-win"><span class="mi" aria-hidden="true">🪟</span>On WinOS<small>launch GNS3, then console into the devices below</small></div><p class="task-head">Task 3 - Basic Device Configurations</p>
 <p class="task-head">Task 3.1 - End User Device and Basic Router Configuration</p>
 <div class="step"><h3 class="fh"><span class="n">1</span> Open a console connection to the WinOS system. You can open a console connection by clicking on the device tab or the device icon in the topology image.</h3></div>
 <div class="step"><h3 class="fh"><span class="n">2</span> Next, click the down arrow next to the WinOS tab, and then click Send CTRL+ALT+DEL to the get to the log in screen.</h3></div>
@@ -349,7 +381,7 @@ show nat source translations</pre></div></div><div class="done-row"><input type=
 <div class="step"><h3 class="fh"><span class="n">7</span> Repeat the ping command to verify Edge can reach the Provider P1 interface. Type ping 168.50.80.2. Pings should be successful. Press CTRL + C to stop the pings.</h3></div>
 <p class="task-head">Task 3.3 - Conclusion</p>
 <p class="task-head">Task 4 - Source NAT (SNAT)</p>
-<p class="task-head">Task 4.1 - Configure SNAT</p>
+<div class="mband m-router"><span class="mi" aria-hidden="true">🧭</span>On Edge (VyOS)<small>configuration mode · prompt vyos@vyos#</small></div><p class="task-head">Task 4.1 - Configure SNAT</p>
 <div class="step"><h3 class="fh"><span class="n">1</span> In the Edge (vyos) device console prompt, type configure to enter configuration mode.</h3></div>
 <div class="step"><h3 class="fh"><span class="n">2</span> To configure SNAT, source rules are created and applied as follows: i.  #set nat source rule 10 description 'SNAT' (Describe NAT purpose) ii.  #set nat source rule 10 outbound-interface 'eth1' (Specify outbound interface) iii.  #set nat source rule 10 source address '192.168.10.0/24' (Translate only traffic from private network 192.168.10.0/24) iv.   #set nat source rule 10 translation address 'masquerade' (Use and overload IP address on outbound interface eth1 which is 168.50.80.1)</h3></div>
 <div class="step"><h3 class="fh"><span class="n">3</span> Enter the bolded commands on Edge. Press Enter after each line.</h3></div>
@@ -371,7 +403,7 @@ show nat source translations</pre></div></div><div class="done-row"><input type=
 <div class="step"><h3 class="fh"><span class="n">13</span> Notice there are no visible translations. They have aged or timed out.</h3></div>
 <p class="task-head">Task 4.3 - Conclusion</p>
 <p class="task-head">Task 5 - Destination NAT (DNAT)</p>
-<p class="task-head">Task 5.1 - Configure DNAT</p>
+<div class="mband m-router"><span class="mi" aria-hidden="true">🧭</span>On Edge (VyOS)<small>configuration mode · prompt vyos@vyos#</small></div><p class="task-head">Task 5.1 - Configure DNAT</p>
 <div class="step"><h3 class="fh"><span class="n">1</span> In the Edge (vyos) device console prompt, type configure to enter configuration mode.</h3></div>
 <div class="step"><h3 class="fh"><span class="n">2</span> To configure SNAT, destination rules are created and applied as follows: i.     #set nat destination rule 20 description ' DNAT' (Describe NAT purpose) ii.     #set nat destination rule 20 inbound-interface 'eth1' (Specify inbound interface) iii.     #set nat destination rule 20 protocol 'icmp' (Protocol that will be forwarded) iv.      #set nat destination rule 20 translation address '192.168.10.200' (Internal host address that traffic will be forwarded to - this command replaces the destination address of an inbound packet with 192.168.10.200)</h3></div>
 <div class="step"><h3 class="fh"><span class="n">3</span> Enter the bolded commands above on Edge. Press Enter after each line.</h3></div>
@@ -384,7 +416,7 @@ show nat source translations</pre></div></div><div class="done-row"><input type=
 <div class="step"><h3 class="fh"><span class="n">4</span> Navigate back to the Edge console, and type show nat destination translations. View the NAT table in Edge.</h3></div>
 <div class="step"><h3 class="fh"><span class="n">5</span> Notice that the Pre-NAT and Post-NAT addresses in the table are the same.</h3></div>
 <p class="task-head">Task 5.3 - Conclusion</p>
-<p class="task-head">Task 6.1 - Configure 1-to-1 NAT</p>
+<div class="mband m-router"><span class="mi" aria-hidden="true">🧭</span>On Edge (VyOS)<small>configuration mode · prompt vyos@vyos#</small></div><p class="task-head">Task 6.1 - Configure 1-to-1 NAT</p>
 <div class="step"><h3 class="fh"><span class="n">1</span> In the Edge (vyos) device console prompt, type configure to enter configuration mode.</h3></div>
 <div class="step"><h3 class="fh"><span class="n">2</span> First, we will configure DNAT. Destination rules are created and applied as follows: i.     #set nat destination rule 30 description ' 1-to-1 NAT' (Describe NAT purpose) ii.     #set nat destination rule 30 destination address '168.50.80.1' (Outside eth0 IP iii.    #set nat destination rule 30 inbound-interface 'eth1' (Specify inbound interface) iv.     #set nat destination rule 30 translation address '192.168.10.200' (Internal host address that traffic will be forwarded to - this command replaces the destination address of an inbound packet with 192.168.10.200)</h3><div class="code"><pre>address)</pre></div></div>
 <div class="shotmark">📸 <b>Screenshot for your report:</b> <code class="inl">show nat destination rules</code> listing your DNAT / 1-to-1 rules</div><div class="step"><h3 class="fh"><span class="n">3</span> Enter the bolded commands above on Edge. Press Enter after each line.</h3></div>

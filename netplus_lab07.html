@@ -142,6 +142,24 @@ em{color:var(--ink-soft)}
 .task-head{font-weight:700;color:var(--accent-ink);margin:1.4rem 0 .2rem;
   padding-top:.5rem;border-top:1px dashed var(--line)}
 
+/* machine bands — introduce the run of steps that happens on one VM */
+.mband{display:flex;align-items:center;gap:.5rem;margin:1.3rem 0 .4rem;padding:.45rem .75rem;
+  border-radius:8px;font-weight:700;font-size:.92rem;border:1px solid var(--line);
+  border-left:4px solid var(--accent);background:var(--panel)}
+.mband .mi{font-size:1.1rem;line-height:1;flex:none}
+.mband small{font-weight:600;color:var(--faint);font-size:.76rem;margin-left:.15rem}
+.mband.m-win{border-left-color:var(--accent);background:var(--d1-soft);color:var(--accent-ink)}
+.mband.m-linux{border-left-color:var(--signal);background:var(--signal-soft)}
+.mband.m-router{border-left-color:var(--copper);background:var(--copper-soft)}
+.mband.m-switch{border-left-color:var(--d5);background:var(--d5-soft)}
+.mband.m-android{border-left-color:var(--d2);background:var(--d2-soft)}
+/* inline "On <machine>:" label for a single step that switches VMs mid-step */
+.onvm{display:inline-flex;align-items:center;gap:.25rem;font-weight:700;font-size:.78rem;
+  padding:.06rem .45rem;border-radius:6px;border:1px solid var(--line);background:var(--panel-2);
+  color:var(--ink);white-space:nowrap;margin-right:.35rem;vertical-align:baseline}
+/* non-selectable terminal prompt prefix inside code blocks (not included in copy) */
+.code pre .pr{color:var(--code-faint);user-select:none}
+
 /* code + copy */
 .code{position:relative;background:var(--code-bg);border-radius:8px;margin:.5rem 0;
   border:1px solid rgba(255,255,255,.06)}
@@ -280,37 +298,65 @@ footer .program{color:var(--ink-soft);font-weight:600}
     <ol><li><a href="#overview">Overview</a></li><li><a href="#environment">The environment</a></li><li><a href="#walkthrough">Walkthrough</a></li><li><a href="#fullsteps">Full lab steps</a></li><li><a href="#reference">Reference</a></li><li><a href="#stuck">Where people get stuck</a></li><li><a href="#exam">Exam relevance</a></li><li><a href="#check">Check yourself</a></li><li><a href="#evidence">Evidence to capture</a></li><li><a href="#cheat">Cheat sheet</a></li></ol>
   </nav>
 
-  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>Static routes don't scale — in a big network you can't hand-maintain every path. <strong>Dynamic routing protocols</strong> let routers advertise what they know and learn from neighbors, adapting automatically when links change. You configure the three the exam cares about, on <strong>VyOS</strong>:</p><ul><li><strong>RIP</strong> — a simple <strong>distance-vector</strong> IGP that counts hops (max 15). Easy, small-scale, dated.</li><li><strong>OSPF</strong> — a <strong>link-state</strong> IGP that builds a full map and picks routes by cost. The workhorse of enterprise interior routing. You do both <strong>OSPFv2 (IPv4)</strong> and <strong>OSPFv3 (IPv6)</strong>.</li><li><strong>BGP</strong> — the <strong>path-vector</strong> protocol that routes <em>between</em> autonomous systems. It runs the Internet. You configure it for both IPv4 and IPv6.</li></ul><div class="call tip"><span class="k">IGP vs EGP</span>RIP and OSPF are <strong>interior</strong> gateway protocols — inside one organization. BGP is the <strong>exterior</strong> protocol — between organizations/ISPs (between autonomous systems).</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the same <strong>NDG NETLAB+ pod</strong>. You open each virtual machine from the topology tab and work from its console. These are the base pod machines and their credentials:</p><div class="scroll"><table class="tbl"><thead><tr><th>Machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td>NDGlabpass123!</td></tr><tr><td><strong>MintOS</strong> (Linux Mint)</td><td><code class="inl">172.16.1.35/24</code></td><td>sysadmin</td><td>NDGlabpass123!</td></tr><tr><td><strong>pfSense</strong> (firewall)</td><td>eth0 <code class="inl">192.168.1.254/24</code> · eth1 <code class="inl">172.16.1.254/24</code></td><td>admin</td><td>NDGlabpass123!</td></tr><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td>gns3</td></tr></tbody></table></div><div class="call tip"><span class="k">Reserve the pod first</span>If a lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the full pod and confirm every VM is up before you start.</div><p><strong>GNS3</strong> with <strong>VyOS routers (R1, R2)</strong> in different autonomous systems for the BGP portion. You configure each protocol in turn and verify with <code class="inl">show</code> commands.</p><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><p class="task-head">RIP</p><div class="step"><h3><span class="n">1</span>Enable RIP on the connected networks</h3><div class="code"><pre data-copy="configure
+  <section id="overview"><h2>Overview — what this lab is really teaching</h2><p>Static routes don't scale — in a big network you can't hand-maintain every path. <strong>Dynamic routing protocols</strong> let routers advertise what they know and learn from neighbors, adapting automatically when links change. You configure the three the exam cares about, on <strong>VyOS</strong>:</p><ul><li><strong>RIP</strong> — a simple <strong>distance-vector</strong> IGP that counts hops (max 15). Easy, small-scale, dated.</li><li><strong>OSPF</strong> — a <strong>link-state</strong> IGP that builds a full map and picks routes by cost. The workhorse of enterprise interior routing. You do both <strong>OSPFv2 (IPv4)</strong> and <strong>OSPFv3 (IPv6)</strong>.</li><li><strong>BGP</strong> — the <strong>path-vector</strong> protocol that routes <em>between</em> autonomous systems. It runs the Internet. You configure it for both IPv4 and IPv6.</li></ul><div class="call tip"><span class="k">IGP vs EGP</span>RIP and OSPF are <strong>interior</strong> gateway protocols — inside one organization. BGP is the <strong>exterior</strong> protocol — between organizations/ISPs (between autonomous systems).</div><div class="done-row"><input type="checkbox" id="done-overview" data-done="overview"><label for="done-overview">Mark this section reviewed</label></div></section><section id="environment"><h2>The environment you're working in</h2><p>Every Network+ lab runs inside the <strong>NDG NETLAB+ pod</strong>, but each lab uses only the machines its exercise needs. The table below is this lab's <strong>Lab Settings</strong>, straight from the NDG guide. <strong>Lab 07 runs inside GNS3 on WinOS</strong>: you console into two <strong>VyOS</strong> routers (R1, R2) and the VPCS hosts. You configure three dynamic routing protocols in turn — RIP, OSPF, then BGP.</p><div class="scroll"><table class="tbl"><thead><tr><th>Virtual machine</th><th>IP address</th><th>Account</th><th>Password</th></tr></thead><tbody><tr><td><strong>GNS3</strong> (device emulator)</td><td><code class="inl">192.168.1.100/24</code></td><td>gns3</td><td><code class="inl">gns3</code></td></tr><tr><td><strong>WinOS</strong> (Windows Server)</td><td><code class="inl">192.168.1.20/24</code></td><td>Administrator</td><td><code class="inl">NDGlabpass123!</code></td></tr><tr><td><strong>EXOS</strong> (switch)</td><td>—</td><td>admin</td><td><em>(no password)</em></td></tr><tr><td><strong>VyOS</strong> (routers R1 &amp; R2)</td><td>—</td><td>vyos</td><td><code class="inl">vyos</code></td></tr></tbody></table></div><div class="call env"><span class="k">Pod topology</span><strong>LAN 1 192.168.10.0/24</strong> ── <strong>R1</strong> <code class="inl">eth1 168.50.80.1/30</code> ══ WAN ══ <code class="inl">168.50.80.2</code> <strong>R2</strong> ── <strong>LAN 2 172.16.31.0/24</strong>. Dual-stack: LAN 1 <code class="inl">2000:0b32:c0e9:1::/64</code>, WAN <code class="inl">2000:0b32:c0e9:2::/64</code>, LAN 2 <code class="inl">2000:0b32:c0e9:3::/64</code>. Router-IDs: R1 <code class="inl">1.1.1.1</code>, R2 <code class="inl">2.2.2.2</code>. BGP AS: R1 <code class="inl">100</code>, R2 <code class="inl">200</code>.</div><div class="call tip"><span class="k">Reserve the pod first</span>If the lab won't load, use the <strong>Reserve Sandbox Environment</strong> doc to boot the pod and confirm the VMs are up before you start.</div><div class="done-row"><input type="checkbox" id="done-environment" data-done="environment"><label for="done-environment">Mark this section reviewed</label></div></section><section id="walkthrough"><h2>Walkthrough</h2><div class="call warn"><span class="k">VyOS, not Cisco IOS</span>Both routers run <strong>VyOS</strong>: <code class="inl">configure</code>, <code class="inl">set …</code>, <code class="inl">commit</code>, <code class="inl">save</code>; <code class="inl">show</code> runs from operational mode. You configure each protocol on <strong>both</strong> routers (R1 shown; repeat on R2 with its router-id/AS), and you <strong>remove</strong> one protocol before configuring the next.</div><div class="mband m-router"><span class="mi" aria-hidden="true">🧭</span>On the routers (VyOS: R1 and R2)<small>console in from the GNS3 topology · config prompt vyos@R1# / vyos@R2#</small></div><p class="task-head">RIP (RIPng for IPv6) — advertise connected networks</p><div class="step"><h3><span class="n">1</span>Advertise R1's connected networks with RIP and RIPng</h3><div class="code"><pre data-copy="configure
 set protocols rip network 192.168.10.0/24
-set protocols rip network 168.50.80.0/24
-commit ; save">configure
-set protocols rip network 192.168.10.0/24
-set protocols rip network 168.50.80.0/24
-commit ; save</pre></div><p>Verify learned routes appear as <code class="inl">R</code> in the table: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show ip route rip">show ip route rip</pre></div></div><p class="task-head">OSPF (v2 for IPv4, v3 for IPv6)</p><div class="step"><h3><span class="n">1</span>Configure single-area OSPFv2</h3><div class="code"><pre data-copy="set protocols ospf area 0 network 192.168.10.0/24
+set protocols rip network 168.50.80.0/30
+set protocols ripng network 2000:0b32:c0e9:1::/64
+set protocols ripng network 2000:0b32:c0e9:2::/64
+commit
+save"><span class="pr">vyos@R1:~$ </span>configure
+<span class="pr">vyos@R1# </span>set protocols rip network 192.168.10.0/24
+<span class="pr">vyos@R1# </span>set protocols rip network 168.50.80.0/30
+<span class="pr">vyos@R1# </span>set protocols ripng network 2000:0b32:c0e9:1::/64
+<span class="pr">vyos@R1# </span>set protocols ripng network 2000:0b32:c0e9:2::/64
+<span class="pr">vyos@R1# </span>commit
+<span class="pr">vyos@R1# </span>save</pre></div><p>Repeat on R2 with its connected networks, then verify the learned routes (they show as <code class="inl">R</code>): <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show ip route rip
+show ipv6 route ripng"><span class="pr">vyos@R1:~$ </span>show ip route rip
+<span class="pr">vyos@R1:~$ </span>show ipv6 route ripng</pre></div></div><div class="step"><h3><span class="n">2</span>Remove RIP before moving to OSPF</h3><p>On <strong>both</strong> routers, tear down RIP so it doesn't compete with OSPF:</p><div class="code"><pre data-copy="configure
+delete protocols rip
+delete protocols ripng
+commit
+save"><span class="pr">vyos@R1:~$ </span>configure
+<span class="pr">vyos@R1# </span>delete protocols rip
+<span class="pr">vyos@R1# </span>delete protocols ripng
+<span class="pr">vyos@R1# </span>commit
+<span class="pr">vyos@R1# </span>save</pre></div></div><p class="task-head">OSPF (v2 for IPv4, v3 for IPv6)</p><div class="step"><h3><span class="n">1</span>Single-area OSPFv2</h3><p>Advertise both networks into area 0 and set a unique router-id (<code class="inl">1.1.1.1</code> on R1, <code class="inl">2.2.2.2</code> on R2):</p><div class="code"><pre data-copy="set protocols ospf area 0 network 192.168.10.0/24
+set protocols ospf area 0 network 168.50.80.0/30
 set protocols ospf parameters router-id 1.1.1.1
-commit ; save">set protocols ospf area 0 network 192.168.10.0/24
-set protocols ospf parameters router-id 1.1.1.1
-commit ; save</pre></div><p>Check neighbors came up and routes were learned (<code class="inl">O</code>): <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show ip ospf neighbor
-show ip route ospf">show ip ospf neighbor
-show ip route ospf</pre></div></div><div class="step"><h3><span class="n">2</span>Configure OSPFv3 for IPv6</h3><div class="code"><pre data-copy="set protocols ospfv3 area 0 interface eth0
-commit ; save
-show ipv6 route ospf">set protocols ospfv3 area 0 interface eth0
-commit ; save
-show ipv6 route ospf</pre></div></div><p class="task-head">BGP (IPv4 and IPv6)</p><div class="step"><h3><span class="n">1</span>Configure an eBGP peering</h3><p>On R1 (AS 100) peer with R2 (AS 200):</p><div class="code"><pre data-copy="set protocols bgp 100 parameters router-id 168.50.80.1
+commit
+save"><span class="pr">vyos@R1# </span>set protocols ospf area 0 network 192.168.10.0/24
+<span class="pr">vyos@R1# </span>set protocols ospf area 0 network 168.50.80.0/30
+<span class="pr">vyos@R1# </span>set protocols ospf parameters router-id 1.1.1.1
+<span class="pr">vyos@R1# </span>commit
+<span class="pr">vyos@R1# </span>save</pre></div><p>Verify adjacency and routes (type <code class="inl">exit</code> to operational mode first): <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show ip ospf neighbor
+show ip ospf database
+show ip route ospf"><span class="pr">vyos@R1:~$ </span>show ip ospf neighbor
+<span class="pr">vyos@R1:~$ </span>show ip ospf database
+<span class="pr">vyos@R1:~$ </span>show ip route ospf</pre></div></div><div class="step"><h3><span class="n">2</span>Single-area OSPFv3 (IPv6)</h3><p>OSPFv3 is configured per <em>interface</em> rather than per network:</p><div class="code"><pre data-copy="set protocols ospfv3 area 0 interface eth0
+set protocols ospfv3 area 0 interface eth1
+set protocols ospfv3 parameters router-id 1.1.1.1
+commit
+save"><span class="pr">vyos@R1# </span>set protocols ospfv3 area 0 interface eth0
+<span class="pr">vyos@R1# </span>set protocols ospfv3 area 0 interface eth1
+<span class="pr">vyos@R1# </span>set protocols ospfv3 parameters router-id 1.1.1.1
+<span class="pr">vyos@R1# </span>commit
+<span class="pr">vyos@R1# </span>save</pre></div><div class="code"><pre data-copy="show ipv6 route ospf"><span class="pr">vyos@R1:~$ </span>show ipv6 route ospf</pre></div><p>Remove OSPF (<code class="inl">delete protocols ospf</code> and <code class="inl">delete protocols ospfv3</code>) on both routers before BGP. <span class="shot">📷 screenshot for your report</span></p></div><p class="task-head">BGP (IPv4 and IPv6) — eBGP between AS 100 and AS 200</p><div class="step"><h3><span class="n">1</span>Configure eBGP on R1 (AS 100 → neighbour AS 200)</h3><div class="code"><pre data-copy="set protocols bgp 100 neighbor 168.50.80.2 ebgp-multihop 2
 set protocols bgp 100 neighbor 168.50.80.2 remote-as 200
-set protocols bgp 100 neighbor 168.50.80.2 ebgp-multihop 2
+set protocols bgp 100 neighbor 168.50.80.2 update-source 168.50.80.1
 set protocols bgp 100 address-family ipv4-unicast network 192.168.10.0/24
-commit ; save">set protocols bgp 100 parameters router-id 168.50.80.1
-set protocols bgp 100 neighbor 168.50.80.2 remote-as 200
-set protocols bgp 100 neighbor 168.50.80.2 ebgp-multihop 2
-set protocols bgp 100 address-family ipv4-unicast network 192.168.10.0/24
-commit ; save</pre></div><p>Add the IPv6 address-family and neighbor the same way, then verify: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show ip bgp
-show ip route bgp
-show ipv6 bgp">show ip bgp
-show ip route bgp
-show ipv6 bgp</pre></div></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology and Addressing Table</p>
+set protocols bgp 100 parameters router-id 168.50.80.1
+commit
+save"><span class="pr">vyos@R1# </span>set protocols bgp 100 neighbor 168.50.80.2 ebgp-multihop 2
+<span class="pr">vyos@R1# </span>set protocols bgp 100 neighbor 168.50.80.2 remote-as 200
+<span class="pr">vyos@R1# </span>set protocols bgp 100 neighbor 168.50.80.2 update-source 168.50.80.1
+<span class="pr">vyos@R1# </span>set protocols bgp 100 address-family ipv4-unicast network 192.168.10.0/24
+<span class="pr">vyos@R1# </span>set protocols bgp 100 parameters router-id 168.50.80.1
+<span class="pr">vyos@R1# </span>commit
+<span class="pr">vyos@R1# </span>save</pre></div><p>On R2 use <code class="inl">bgp 200</code>, neighbour <code class="inl">168.50.80.1</code>, <code class="inl">remote-as 100</code>, and router-id <code class="inl">168.50.80.2</code>. Verify the peering and learned routes: <span class="shot">📷 screenshot for your report</span></p><div class="code"><pre data-copy="show ip bgp
+show ip route bgp"><span class="pr">vyos@R1:~$ </span>show ip bgp
+<span class="pr">vyos@R1:~$ </span>show ip route bgp</pre></div><p>IPv6 BGP mirrors this under <code class="inl">address-family ipv6-unicast</code> with the IPv6 neighbour <code class="inl">2000:b32:c0e9:2::2</code> — verify with <code class="inl">show ipv6 bgp</code>.</p></div><div class="done-row"><input type="checkbox" id="done-walkthrough" data-done="walkthrough"><label for="done-walkthrough">Mark this section reviewed</label></div></section><section id="fullsteps"><h2>Full lab steps</h2><p>Every step from the NDG lab guide, in order — enough to run the lab end to end from this page. The walkthrough above explains the key moves; this is the complete click-by-click checklist. Watch for the 📸 markers.</p><p class="task-head">Task 1 - Topology and Addressing Table</p>
 <p class="task-head">Task 2 - Routing Protocols</p>
-<p class="task-head">Task 3 - Routing Information Protocol (RIP)</p>
+<div class="mband m-router"><span class="mi" aria-hidden="true">🧭</span>On the routers (VyOS: R1 and R2)<small>console in from GNS3 · config prompt vyos@R1# / vyos@R2#</small></div><p class="task-head">Task 3 - Routing Information Protocol (RIP)</p>
 <div class="step"><h3 class="fh"><span class="n">1</span> Configure RIP on R1 and R2</h3></div>
 <div class="step"><h3 class="fh"><span class="n">2</span> Verify RIP routes</h3></div>
 <div class="step"><h3 class="fh"><span class="n">3</span> Verify connectivity between devices</h3></div>
@@ -334,7 +380,7 @@ show ipv6 bgp</pre></div></div><div class="done-row"><input type="checkbox" id="
 <div class="step"><h3 class="fh"><span class="n">4</span> Verify End-to End Connectivity. a. Now that both R1 and R2 routing tables are complete and convergence is evident, we will verify connectivity between LAN 1 and LAN 2. Open a console on PC1. b. Press Enter to access the PC1 prompt. c. Ping PC4 from PC1 for IPv4. At the PC1&gt; prompt, type ping 172.16.31.3, and then press Enter. d. Pings should be successful.</h3></div>
 <div class="step"><h3 class="fh"><span class="n">5</span> What would happen if the LAN 2 network on R2 went down? R2 would automatically update R1 about that failed network, and R1 would remove both these IPv4 and IPv6 LAN 2 networks from its routing table. To simulate this failure, we will disable the e1 interface on a. In the R1 console, view the current IPv4 routing table. Type show ip route, and then press Enter. Next type show ipv6 route to view the current IPv6 routing table. b. Notice that R1 has both an IPv4 and an IPv6 route to the R2 LAN 2. c. In the R2 console, type configure, and then press Enter to enter configuration mode. d. Next, type set interfaces ethernet eth1 disable to shutdown R2 eth1. e. Navigate back to the R1 console, and type show ip route to view its routing table. f. Notice that the RIP route to the R2 LAN is no longer present in the R1 routing table. g. Repeat step e above for IPv6. Type show ipv6 route h. Notice that the RIPng route to the R2 LAN is no longer present in the R1 routing table. i.     To restore network convergence, we need to re-enable the R2 eth1 interface. On R2, type delete interfaces ethernet eth1 disable. Next, type commit, and then save. j.     Since the R2 eth1 interface is back up, we can now validate if the IPv4 and IPv6 networks on LAN 2 are back in the R1 routing table. On R1, type show ip route, and then type show ipv6 route. k. Notice that the LAN 2 networks are back in the R1 routing table.</h3><div class="call tip"><span class="k">Note</span><p>R2 that connects to LAN 2. We will view the R1 routing table before and after failure. Then type commit, and then type save.</p></div></div>
 <div class="step"><h3 class="fh"><span class="n">6</span> Remove RIP and RIPng from R1 and R2 to prepare for the next routing protocol configuration. a. On both routers in configuration mode, type delete protocols rip, followed by delete protocols ripng, to delete both IPv4 and IPv4 RIP configurations. Next, type commit, and then type save.</h3></div>
-<p class="task-head">Task 4 - Open Shortest Path First (OSPF)</p>
+<div class="mband m-router"><span class="mi" aria-hidden="true">🧭</span>On the routers (VyOS: R1 and R2)<small>config prompt vyos@R1# / vyos@R2#</small></div><p class="task-head">Task 4 - Open Shortest Path First (OSPF)</p>
 <p class="task-head">Task 4.1 - Configure and Verify Single-Area OSPFv2</p>
 <div class="step"><h3 class="fh"><span class="n">1</span> Starting with R1, we will configure single-area OSPF, and advertise its directly-connected networks. Next, we will do the same on R2, and then we will verify OSPF routing. Finally, we will perform end-to-end connectivity testing between LAN 1 and LAN 2. a. At the R1 console in configure mode, type the following commands followed by the Enter key: •    set protocols ospf area 0 network 192.168.10.0/24 •    set protocols ospf area 0 network 168.50.80.0/30 •    set protocols ospf parameters router-id 1.1.1.1 As we did when configuring RIP, the network command advertises the directly- connected networks to the next hop router, R2. The area 0 command specifies that single-area OSPF is being configured. The router-id is a four-octet value used to identify a router running OSPF as the focal point for routing updates. In a multiaccess network such as this one where all connections are ethernet, the router with the highest router- id becomes the Designated Router (DR) in the network. The router with the second highest router-id becomes the Backup Designated Router (BDR). The BDR will assume the role of the DR only if the DR fails. b. Repeat the same steps in R2. Use R2 directly-connected networks after the network command. Use 2.2.2.2 as the R2 router-id.</h3><div class="code"><pre>•    commit
 •    save</pre></div></div>
@@ -352,7 +398,7 @@ show ipv6 bgp</pre></div></div><div class="done-row"><input type="checkbox" id="
 •   commit
 •   save</pre></div></div>
 <p class="task-head">Task 4.3 - Conclusion</p>
-<p class="task-head">Task 5 - Border Gateway Protocol (BGP)</p>
+<div class="mband m-router"><span class="mi" aria-hidden="true">🧭</span>On the routers (VyOS: R1 and R2)<small>config prompt vyos@R1# / vyos@R2#</small></div><p class="task-head">Task 5 - Border Gateway Protocol (BGP)</p>
 <p class="task-head">Task 5.1 - Configure and Verify BGP for IPv4</p>
 <div class="step"><h3 class="fh"><span class="n">1</span> Configure BGP for IPv6 on R1. Type the commands below. Press Enter after each line: •    set protocols bgp 100 neighbor 168.50.80.2 ebgp-multihop 2 •    set protocols bgp 100 neighbor 168.50.80.2 remote-as 200 •    set protocols bgp 100 neighbor 168.50.80.2 update-source •    set protocols bgp 100 address-family ipv4-unicast network •    set protocols bgp 100 parameters router-id 168.50.80.1 In the BGP configuration commands, the syntax begins with set protocols bgp 100. This starts the BGP process in R1 for AS100. The 100 represents the local ASN. The neighbor 168.50.80.2 command syntax in the first three statements specifies the next-hop IP address of R1, which is the R2 eth0 address. R2 is called a peer. The ebgp-multihop 2 command specifies external BGP for 2 hops. The remote-as 200 command specifies the AS R1 is connecting to, which is AS200. The update-source 168.50.80.1 command specifies the source of routing updates, which is R1 eth1. The address-family ipv4-unicast networks. The parameters router-id 168.50.80.1 command assigns the BGP router ID for R1.</h3><div class="code"><pre>168.50.80.1
 192.168.10.0/24
